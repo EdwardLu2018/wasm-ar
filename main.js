@@ -69,8 +69,8 @@ function startVideoProcessing() {
         return;
     }
     stopVideoProcessing();
-    src = new cv.Mat(height, width, cv.CV_8UC4);
-    dst = new cv.Mat(height, width, cv.CV_8UC1);
+    src = new cv.Mat(height, width, cv.CV_32FC4); //cv.CV_8UC4);
+    dst = new cv.Mat(height, width, cv.CV_32FC1); //cv.CV_8UC1);
     requestAnimationFrame(processVideo);
 }
 
@@ -100,7 +100,7 @@ function processVideo() {
                 }
             }
 
-            cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
+            // cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
             // cv.drawKeypoints(ref_img, kp2, dst);
 
             if (good.size() >= 4) {
@@ -124,24 +124,24 @@ function processVideo() {
                 coords2_mat.delete();
 
                 let mask = new cv.Mat(ref_img.rows, ref_img.cols, cv.CV_32FC1, [1,1,1,1]);
-                let mask_warp = new cv.Mat(src.rows, src.cols, cv.CV_32FC1);
+                let mask_warp = new cv.Mat(height, width, cv.CV_32FC1);
                 cv.warpPerspective(
                     mask,
                     mask_warp,
                     H,
-                    new cv.Size(src.rows, src.cols)
+                    new cv.Size(height, width)
                 );
 
-                let hp_warp = new cv.Mat(src.rows, src.cols, cv.CV_32FC1);
+                let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
                 cv.warpPerspective(
                     hp_img,
                     hp_warp,
                     H,
-                    new cv.Size(src.rows, src.cols)
+                    new cv.Size(height, width)
                 );
 
-                // let template = new cv.Mat(src.rows, src.cols, cv.CV_32FC1);
-                cv.multiply(hp_warp, mask_warp, dst)
+                // let template = new cv.Mat(height, width, cv.CV_32FC1);
+                cv.multiply(hp_warp, mask_warp, dst);
             }
 
             cv.imshow("canvasOutput", dst);
