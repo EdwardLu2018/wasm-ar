@@ -69,7 +69,7 @@ function startVideoProcessing() {
         return;
     }
     stopVideoProcessing();
-    src = new cv.Mat(height, width, cv.CV_32FC4); //cv.CV_8UC4);
+    src = new cv.Mat(height, width, cv.CV_8UC4);
     dst = new cv.Mat(height, width, cv.CV_32FC1); //cv.CV_8UC1);
     requestAnimationFrame(processVideo);
 }
