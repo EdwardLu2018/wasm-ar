@@ -106,8 +106,8 @@ function processVideo() {
             let coords2 = []
             for (let i = 0; i < good.size(); i++) {
                 let m = good.get(i);
-                coords1.push([kp1.get(m.queryIdx).pt.x, kp1.get(m.queryIdx).pt.y]);
-                coords2.push([kp2.get(m.queryIdx).pt.x, kp2.get(m.queryIdx).pt.y]);
+                coords1.push([kp1.get(m.queryIdx).pt]);
+                coords2.push([kp2.get(m.queryIdx).pt]);
             }
             const rows = good.size(), cols = 2;
             let coords1_mat = cv.matFromArray(rows, cols, cv.CV_8UC1, coords1);
