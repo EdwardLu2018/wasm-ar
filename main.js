@@ -94,7 +94,7 @@ function processVideo() {
             let good = new cv.DMatchVector();
             for (let i = 0; i < matches.size(); i++) {
                 let m = matches.get(i);
-                if (m.distance < matches.size()*0.1) {
+                if (m.distance < matches.size()*0.075) {
                     good.push_back(m);
                 }
             }
@@ -119,7 +119,7 @@ function processVideo() {
                 let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
                 let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
 
-                let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
+                let H = cv.findHomography(coords2_mat, coords1_mat, cv.RANSAC);
                 console.log(H)
 
                 coords1_mat.delete();
