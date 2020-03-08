@@ -16,6 +16,8 @@ let ref_img = null;
 let des2 = null;
 let kp2 = null;
 
+var frames = 0;
+
 window.onload = function() {
     var canvas = document.getElementById("canvasInput");
     canvas.width = width;
@@ -72,40 +74,43 @@ function startVideoProcessing() {
 function processVideo() {
     stats.begin();
     vc.read(src);
-    // try {
-        let src_gray = new cv.Mat();
-        cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
+    try {
+        if (frames % 2 == 0) {
+            let src_gray = new cv.Mat();
+            cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
-        let mat1 = new cv.Mat();
-        let des1 = new cv.Mat();
-        let kp1 = new cv.KeyPointVector();
+            let mat1 = new cv.Mat();
+            let des1 = new cv.Mat();
+            let kp1 = new cv.KeyPointVector();
 
-        orb.detectAndCompute(src_gray, mat1, kp1, des1);
+            orb.detectAndCompute(src_gray, mat1, kp1, des1);
 
-        let matches = new cv.DMatchVector();
-        let mask = new cv.Mat();
-        matcher.match(des1, des2, matches, mask);
+            let matches = new cv.DMatchVector();
+            let mask = new cv.Mat();
+            matcher.match(des1, des2, matches, mask);
 
-        let good = new cv.DMatchVector();
-        for (let i = 0; i < matches.size(); i++) {
-            let m = matches.get(i);
-            if (m.distance < matches.size()*0.05) {
-                good.push_back(m);
+            let good = new cv.DMatchVector();
+            for (let i = 0; i < matches.size(); i++) {
+                let m = matches.get(i);
+                if (m.distance < matches.size()*0.1) {
+                    good.push_back(m);
+                }
             }
+
+            let dst = new cv.Mat(height, width, cv.CV_8UC1);
+            cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
+            // cv.drawKeypoints(ref_img, kp2, dst);
+
+            cv.imshow("canvasOutput", dst);
+            stats.end();
+
+            [mat1,des1,kp1,matches,mask,good,dst].forEach(m => m.delete());
         }
-
-        let dst = new cv.Mat(height, width, cv.CV_8UC1);
-        cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
-        // cv.drawKeypoints(ref_img, kp2, dst);
-
-        cv.imshow("canvasOutput", dst);
-        stats.end();
-
-        [mat1,des1,kp1,matches,mask,good,dst].forEach(m => m.delete());
-    // }
-    // catch(err) {
-    //     console.log(err.message);
-    // }
+    }
+    catch(err) {
+        console.log(err.message);
+    }
+    frames += 1;
     requestAnimationFrame(processVideo);
 }
 
