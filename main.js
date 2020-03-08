@@ -145,8 +145,13 @@ function processVideo() {
                     new cv.Size(width, height)
                 );
 
-                cv.cvtColor(hp_warp, hp_warp, cv.COLOR_RGBA2GRAY);
-                cv.multiply(hp_warp, mask_warp, dst, 1, cv.CV_32FC1);
+                let mask_warp_img = new cv.Mat();
+                let mask_warp_vec = new cv.MatVector();
+                for (var i=0;i<3;i++) mask_warp_vec.push_back(mask_warp);
+                mask_warp_vec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
+                cv.merge(mask_warp_vec, mask_warp_img);
+
+                cv.multiply(hp_warp, mask_warp_img, dst, 1, cv.CV_32FC1);
             }
 
             cv.imshow("canvasOutput", dst);
