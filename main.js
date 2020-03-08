@@ -1,5 +1,5 @@
 let streaming = false;
-let width = window.innerWidth;
+let width = window.innerWidth * 3 / 2;
 let height = 0;
 
 let video = document.getElementById("video");
@@ -89,8 +89,7 @@ function processVideo() {
             orb.detectAndCompute(src_gray, mat1, kp1, des1);
 
             let matches = new cv.DMatchVector();
-            let mask = new cv.Mat();
-            matcher.match(des1, des2, matches, mask);
+            matcher.match(des1, des2, matches, new cv.Mat());
 
             let good = new cv.DMatchVector();
             for (let i = 0; i < matches.size(); i++) {
@@ -148,7 +147,6 @@ function processVideo() {
 
             cv.imshow("canvasOutput", dst);
             mat1.delete();
-            mask.delete();
             des1.delete();
             kp1.delete();
         }
