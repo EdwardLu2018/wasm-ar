@@ -1,5 +1,5 @@
 let streaming = false;
-let width = window.innerWidth * 3 / 2;
+let width = window.innerWidth;
 let height = 0;
 
 let video = document.getElementById("video");
@@ -89,7 +89,8 @@ function processVideo() {
             orb.detectAndCompute(src_gray, mat1, kp1, des1);
 
             let matches = new cv.DMatchVector();
-            matcher.match(des1, des2, matches, new cv.Mat());
+            let mask = new cv.Mat();
+            matcher.match(des1, des2, matches, mask);
 
             let good = new cv.DMatchVector();
             for (let i = 0; i < matches.size(); i++) {
@@ -102,51 +103,54 @@ function processVideo() {
             // cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
             // cv.drawKeypoints(ref_img, kp2, dst);
 
-            const rows = good.size(), cols = 2;
-            let coords1 = []
-            let coords2 = []
-            for (let i = 0; i < rows; i++) {
-                let m = good.get(i);
-                coords1.push(kp1.get(m.queryIdx).pt.x);
-                coords1.push(kp1.get(m.queryIdx).pt.y);
-                coords2.push(kp2.get(m.trainIdx).pt.x);
-                coords2.push(kp2.get(m.trainIdx).pt.y);
+            if (good.size() >= 10) {
+                const rows = good.size(), cols = 2;
+                let coords1 = []
+                let coords2 = []
+                for (let i = 0; i < rows; i++) {
+                    let m = good.get(i);
+                    coords1.push(kp1.get(m.queryIdx).pt.x);
+                    coords1.push(kp1.get(m.queryIdx).pt.y);
+                    coords2.push(kp2.get(m.trainIdx).pt.x);
+                    coords2.push(kp2.get(m.trainIdx).pt.y);
+                }
+
+                let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
+                let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
+
+                let H = cv.findHomography(coords2_mat, coords1_mat, cv.RANSAC);
+
+                coords1_mat.delete();
+                coords2_mat.delete();
+
+                let mask = new cv.Mat(ref_img.rows, ref_img.cols, cv.CV_32FC4, [1,1,1,1]);
+                let mask_warp = new cv.Mat(height, width, cv.CV_32FC4);
+                cv.warpPerspective(
+                    mask,
+                    mask_warp,
+                    H,
+                    new cv.Size(width, height)
+                );
+                mask.delete();
+
+                let ones = new cv.Mat(height, width, cv.CV_32FC4, [1,1,1,1]);
+                cv.subtract(ones, mask_warp, mask_warp, new cv.Mat(), cv.CV_32FC4);
+                ones.delete();
+
+                let hp_warp = new cv.Mat(height, width, cv.CV_32FC4);
+                cv.warpPerspective(
+                    hp_img,
+                    hp_warp,
+                    H,
+                    new cv.Size(width, height)
+                );
+
+                cv.multiply(hp_warp, mask_warp, dst, 1, cv.CV_32FC1);
             }
-
-            let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
-            let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
-
-            let H = cv.findHomography(coords2_mat, coords1_mat, cv.RANSAC);
-
-            coords1_mat.delete();
-            coords2_mat.delete();
-
-            let mask = new cv.Mat(ref_img.rows, ref_img.cols, cv.CV_32FC4, [1,1,1,1]);
-            let mask_warp = new cv.Mat(height, width, cv.CV_32FC4);
-            cv.warpPerspective(
-                mask,
-                mask_warp,
-                H,
-                new cv.Size(width, height)
-            );
-            mask.delete();
-
-            let ones = new cv.Mat(height, width, cv.CV_32FC4, [1,1,1,1]);
-            cv.subtract(ones, mask_warp, mask_warp, new cv.Mat(), cv.CV_32FC4);
-            ones.delete();
-
-            let hp_warp = new cv.Mat(height, width, cv.CV_32FC4);
-            cv.warpPerspective(
-                hp_img,
-                hp_warp,
-                H,
-                new cv.Size(width, height)
-            );
-
-            cv.multiply(hp_warp, mask_warp, dst, 1, cv.CV_32FC1);
 
             cv.imshow("canvasOutput", dst);
             mat1.delete();
+            mask.delete();
             des1.delete();
             kp1.delete();
         }
