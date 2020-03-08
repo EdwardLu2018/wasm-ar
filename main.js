@@ -103,7 +103,7 @@ function processVideo() {
             // cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
             // cv.drawKeypoints(ref_img, kp2, dst);
 
-            if (good.size() >= 4) {
+            if (good.size() >= 10) {
                 const rows = good.size()/4, cols = 2;
                 let coords1 = []
                 let coords2 = []
@@ -129,12 +129,12 @@ function processVideo() {
                     mask,
                     mask_warp,
                     H,
-                    new cv.Size(height, width)
+                    new cv.Size(width, height)
                 );
                 mask.delete();
 
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
-                cv.subtract(ones, mask_warp, dst, new cv.Mat(), -1);
+                cv.subtract(ones, mask_warp, dst, new cv.Mat(), cv.CV_32FC1);
 
                 // let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
                 // cv.warpPerspective(
