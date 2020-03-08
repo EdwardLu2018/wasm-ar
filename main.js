@@ -102,12 +102,13 @@ function processVideo() {
             // cv.drawKeypoints(ref_img, kp2, dst);
 
             console.log(good.get(0))
-            // let coords1 = []
-            // let coords2 = []
-            // for (let i = 0; i < good.size(); i++) {
-            //     let m = good.get(i);
-            //     coords1.push(kp1.get(m.queryIdx))
-            // }
+            let coords1 = []
+            let coords2 = []
+            for (let i = 0; i < good.size(); i++) {
+                let m = good.get(i);
+                coords1.push(kp1.get(m.queryIdx));
+                console.log(kp1.get(m.queryIdx));
+            }
 
             // let H = cv.findHomography()
 
