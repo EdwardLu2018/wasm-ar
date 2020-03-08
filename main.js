@@ -82,11 +82,11 @@ function processVideo() {
 
         orb.detectAndCompute(src_gray, mat1, kp1, des1);
 
-        let matches = new cv.DMatchVectorVector();
+        let matches = new cv.DMatchVector();
         let mask = new cv.Mat();
-        matcher.knnMatch(des1, des2, matches, 2, mask, false);
+        matcher.match(des1, des2, matches, mask);
 
-        let ratio = .5, good = new cv.DMatchVectorVector();
+        let good = new cv.DMatchVectorVector();
         for (let i = 0; i < matches.size(); i++) {
             let m = matches.get(i).get(0), n = matches.get(i).get(1);
             if (m.distance < ratio * n.distance) {
@@ -102,6 +102,8 @@ function processVideo() {
 
         cv.imshow("canvasOutput", dst);
         stats.end();
+
+        [mat1,des1,kp1,matches,mask,good,dst].forEach(m => m.delete());
     // }
     // catch(err) {
     //     console.log(err.message);
