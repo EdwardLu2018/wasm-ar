@@ -82,15 +82,12 @@ function processVideo() {
             let mat1 = new cv.Mat();
             let des1 = new cv.Mat();
             let kp1 = new cv.KeyPointVector();
-            mat1.delete();
 
             orb.detectAndCompute(src_gray, mat1, kp1, des1);
 
             let matches = new cv.DMatchVector();
             let mask = new cv.Mat();
             matcher.match(des1, des2, matches, mask);
-            mask.delete();
-            des1.delete();
 
             let good = new cv.DMatchVector();
             for (let i = 0; i < matches.size(); i++) {
@@ -99,6 +96,9 @@ function processVideo() {
                     good.push_back(m);
                 }
             }
+            mask.delete();
+            des1.delete();
+            mat1.delete();
 
             if (good.size() >= 4) {
                 let dst = new cv.Mat(height, width, cv.CV_8UC1);
