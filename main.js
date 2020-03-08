@@ -104,7 +104,7 @@ function processVideo() {
             // cv.drawKeypoints(ref_img, kp2, dst);
 
             if (good.size() >= 10) {
-                const rows = good.size()/4, cols = 2;
+                const rows = good.size(), cols = 2;
                 let coords1 = []
                 let coords2 = []
                 for (let i = 0; i < rows; i++) {
@@ -136,16 +136,15 @@ function processVideo() {
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
                 cv.subtract(ones, mask_warp, dst, new cv.Mat(), cv.CV_32FC1);
 
-                // let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
-                // cv.warpPerspective(
-                //     hp_img,
-                //     hp_warp,
-                //     H,
-                //     new cv.Size(height, width)
-                // );
+                let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
+                cv.warpPerspective(
+                    hp_img,
+                    hp_warp,
+                    H,
+                    new cv.Size(width, height)
+                );
 
-                // // let template = new cv.Mat(height, width, cv.CV_32FC1);
-                // cv.multiply(hp_warp, mask_warp, dst);
+                cv.multiply(hp_warp, mask_warp, dst, new cv.Mat(), cv.CV_32FC1);
             }
 
             cv.imshow("canvasOutput", dst);
