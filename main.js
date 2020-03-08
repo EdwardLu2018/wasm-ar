@@ -133,10 +133,8 @@ function processVideo() {
                 );
                 mask.delete();
 
-                let mask = new cv.Mat();
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
-                cv.subtract(ones, mask_warp, dst, mask, -1);
-                mask.delete()
+                cv.subtract(ones, mask_warp, dst, new cv.Mat(), -1);
 
                 // let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
                 // cv.warpPerspective(
