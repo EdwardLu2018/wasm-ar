@@ -75,7 +75,7 @@ function processVideo() {
     stats.begin();
     vc.read(src);
     // try {
-        if (frames % 2 == 0) {
+        if (frames % 5 == 0) {
             let src_gray = new cv.Mat();
             cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
@@ -116,7 +116,6 @@ function processVideo() {
             console.log(H)
 
             cv.imshow("canvasOutput", dst);
-            stats.end();
 
             [mat1,des1,kp1,matches,mask,good,dst].forEach(m => m.delete());
         }
@@ -124,6 +123,7 @@ function processVideo() {
     // catch(err) {
     //     console.log(err.message);
     // }
+    stats.end();
     frames += 1;
     requestAnimationFrame(processVideo);
 }
