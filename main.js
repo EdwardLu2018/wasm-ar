@@ -13,6 +13,7 @@ let stats = null;
 let orb = null;
 let matcher = null;
 let ref_img = null;
+let hp_img = null;
 let des2 = null;
 let kp2 = null;
 
@@ -48,6 +49,7 @@ function startCamera() {
 
             orb = new cv.ORB(500);
             ref_img = cv.imread("ref");
+            hp_img = cv.imread("hp");
 
             let mat2 = new cv.Mat();
             des2 = new cv.Mat();
@@ -92,7 +94,7 @@ function processVideo() {
             let good = new cv.DMatchVector();
             for (let i = 0; i < matches.size(); i++) {
                 let m = matches.get(i);
-                if (m.distance < matches.size()*0.075) {
+                if (m.distance < matches.size()*0.1) {
                     good.push_back(m);
                 }
             }
@@ -114,8 +116,8 @@ function processVideo() {
                 }
 
                 // console.log(coords1);
-                let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_64F, coords1);
-                let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_64F, coords2);
+                let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
+                let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
 
                 let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
                 console.log(H)
@@ -123,10 +125,10 @@ function processVideo() {
                 coords1_mat.delete();
                 coords2_mat.delete();
 
-
                 cv.warpPerspective(
-                    ref_img,
-                    dst, H,
+                    hp_img,
+                    dst,
+                    H,
                     new cv.Size(src.rows, src.cols),
                     cv.INTER_LINEAR,
                     cv.BORDER_CONSTANT,
