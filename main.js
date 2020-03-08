@@ -123,8 +123,8 @@ function processVideo() {
                 coords1_mat.delete();
                 coords2_mat.delete();
 
-                let mask = new cv.Mat(ref_img.rows, ref_img.cols, cv.CV_32FC4, [1,1,1,1]);
-                let mask_warp = new cv.Mat(height, width, cv.CV_32FC4);
+                let mask = new cv.Mat(ref_img.rows, ref_img.cols, cv.CV_32FC1, [1,1,1,1]);
+                let mask_warp = new cv.Mat(height, width, cv.CV_32FC1);
                 cv.warpPerspective(
                     mask,
                     mask_warp,
@@ -133,11 +133,11 @@ function processVideo() {
                 );
                 mask.delete();
 
-                let ones = new cv.Mat(height, width, cv.CV_32FC4, [1,1,1,1]);
-                cv.subtract(ones, mask_warp, mask_warp, new cv.Mat(), cv.CV_32FC4);
+                let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
+                cv.subtract(ones, mask_warp, mask_warp, new cv.Mat(), cv.CV_32FC1);
                 ones.delete();
 
-                let hp_warp = new cv.Mat(height, width, cv.CV_32FC4);
+                let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
                 cv.warpPerspective(
                     hp_img,
                     hp_warp,
