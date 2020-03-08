@@ -101,7 +101,7 @@ function processVideo() {
             cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
             // cv.drawKeypoints(ref_img, kp2, dst);
 
-            const rows = 10, cols = 2;
+            const rows = good.size() / 2, cols = 2;
             let coords1 = []
             let coords2 = []
             for (let i = 0; i < rows; i++) {
