@@ -97,9 +97,7 @@ function processVideo() {
         }
 
         let dst = new cv.Mat(height, width, cv.CV_8UC1);
-        // cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
-        let mc = new cv.Scalar(-1, -1, -1, -1), sc = new cv.Scalar(0, 255, 0, 0), maskingCharVecVec = new cv.CharVectorVector();
-        cv.drawMatchesKnn(src_gray, kp1, ref_img, kp2, good, dst, mc, sc, maskingCharVecVec, 2);
+        cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
         // cv.drawKeypoints(ref_img, kp2, dst);
 
         cv.imshow("canvasOutput", dst);
