@@ -44,7 +44,7 @@ function startCamera() {
             streaming = true;
             vc = new cv.VideoCapture(video);
 
-            orb = new cv.ORB(250);
+            orb = new cv.ORB(500);
             ref_img = cv.imread("ref");
 
             let mat2 = new cv.Mat();
@@ -89,7 +89,7 @@ function processVideo() {
         let good = new cv.DMatchVector();
         for (let i = 0; i < matches.size(); i++) {
             let m = matches.get(i);
-            if (m.distance < matches.size()*0.25) {
+            if (m.distance < matches.size()*0.15) {
                 good.push_back(m);
             }
         }
