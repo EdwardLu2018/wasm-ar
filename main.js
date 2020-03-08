@@ -65,7 +65,7 @@ function processVideo() {
         let des1 = new cv.Mat(), des2 = new cv.Mat();
         let kp1 = new cv.KeyPointVector(), kp2 = new cv.KeyPointVector();
 
-        orb.detectAndCompute(src, mat1, kp1, des1);
+        orb.detectAndCompute(src_gray, mat1, kp1, des1);
         orb.detectAndCompute(ref_img, mat2, kp2, des2);
 
         let matches = new cv.DMatchVector();
@@ -81,7 +81,7 @@ function processVideo() {
         }
 
         let dst = new cv.Mat(height, width, cv.CV_8UC1);
-        cv.drawMatches(src, kp1, ref_img, kp2, good, dst);
+        cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
         cv.imshow("canvasOutput", dst);
         stats.end();
 
