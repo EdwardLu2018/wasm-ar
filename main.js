@@ -86,7 +86,7 @@ function processVideo() {
         let mask = new cv.Mat();
         matcher.match(des1, des2, matches, mask);
 
-        let good = new cv.DMatchVectorVector();
+        let good = new cv.DMatchVector();
         for (let i = 0; i < matches.size(); i++) {
             let m = matches.get(i);
             if (m.distance < matches.size()*0.25) {
