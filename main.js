@@ -74,7 +74,7 @@ function startVideoProcessing() {
 function processVideo() {
     stats.begin();
     vc.read(src);
-    // try {
+    try {
         if (frames % 5 == 0) {
             let src_gray = new cv.Mat();
             cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
@@ -107,22 +107,21 @@ function processVideo() {
                 let m = good.get(i);
                 coords1.push([kp1.get(m.queryIdx).pt.x, kp1.get(m.queryIdx).pt.y]);
                 coords2.push([kp2.get(m.queryIdx).pt.x, kp2.get(m.queryIdx).pt.y]);
-                console.log(kp1.get(m.queryIdx).pt)
             }
             const rows = good.size(), cols = 2;
             let coords1_mat = cv.matFromArray(rows, cols, cv.CV_8UC1, coords1);
             let coords2_mat = cv.matFromArray(rows, cols, cv.CV_8UC1, coords2);
-            // let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
-            // console.log(H)
+            let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
+            console.log(H)
 
             cv.imshow("canvasOutput", dst);
 
             [mat1,des1,kp1,matches,mask,good,dst].forEach(m => m.delete());
         }
-    // }
-    // catch(err) {
-    //     console.log(err.message);
-    // }
+    }
+    catch(err) {
+        console.log(err.message);
+    }
     stats.end();
     frames += 1;
     requestAnimationFrame(processVideo);
