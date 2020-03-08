@@ -100,11 +100,11 @@ function processVideo() {
             des1.delete();
             mat1.delete();
 
-            if (good.size() >= 4) {
-                let dst = new cv.Mat(height, width, cv.CV_8UC1);
-                cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
-                // cv.drawKeypoints(ref_img, kp2, dst);
+            let dst = new cv.Mat(height, width, cv.CV_8UC1);
+            cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
+            // cv.drawKeypoints(ref_img, kp2, dst);
 
+            if (good.size() >= 4) {
                 const rows = good.size() / 2, cols = 2;
                 let coords1 = []
                 let coords2 = []
@@ -115,17 +115,20 @@ function processVideo() {
                     coords2.push(kp2.get(m.trainIdx).pt.x);
                     coords2.push(kp2.get(m.trainIdx).pt.y);
                 }
+
                // console.log(coords1);
                let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_64F, coords1);
                let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_64F, coords2);
 
                let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
                console.log(H)
-
-                cv.imshow("canvasOutput", dst);
-
-                [kp1,matches,good,dst].forEach(m => m.delete());
+               coords1_mat.delete();
+               coords2_mat.delete();
             }
+
+            cv.imshow("canvasOutput", dst);
+            dst.delete();
+            kp1.delete();
         }
     }
     catch(err) {
