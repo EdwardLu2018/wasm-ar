@@ -1,20 +1,20 @@
-let streaming = false;
-let width = window.innerWidth / 2;
-let height = 0;
+const streaming = false;
+const width = window.innerWidth / 2;
+const height = 0;
 
-let video = document.getElementById("video");
-let stream = null;
-let vc = null;
-let src = null;
-let dst = null;
+const video = document.getElementById("video");
+const stream = null;
+const vc = null;
+const src = null;
+const dst = null;
 
-let stats = null;
+const stats = null;
 
-let orb = null;
-let matcher = null;
-let ref_img = null;
-let des2 = null;
-let kp2 = null;
+const orb = null;
+const matcher = null;
+const ref_img = null;
+const des2 = null;
+const kp2 = null;
 
 window.onload = function() {
     var canvas = document.getElementById("canvasInput");
@@ -47,11 +47,11 @@ function startCamera() {
             orb = new cv.ORB(250);
             ref_img = cv.imread("ref");
 
-            let mat2 = new cv.Mat();
+            const mat2 = new cv.Mat();
             des2 = new cv.Mat();
             kp2 = new cv.KeyPointVector();
             orb.detectAndCompute(ref_img, mat2, kp2, des2);
-            mat2.delete();
+            mat2.deconste();
 
             matcher = new cv.BFMatcher(cv.NORM_HAMMING, true);
         }
@@ -73,29 +73,33 @@ function processVideo() {
     stats.begin();
     vc.read(src);
     try {
-        // let src_gray = new cv.Mat();
+        // const src_gray = new cv.Mat();
         // cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
-        let mat1 = new cv.Mat();
-        let des1 = new cv.Mat();
-        let kp1 = new cv.KeyPointVector();
+        const mat1 = new cv.Mat();
+        const des1 = new cv.Mat();
+        const kp1 = new cv.KeyPointVector();
 
         orb.detectAndCompute(src, mat1, kp1, des1);
 
-        let matches = new cv.DMatchVector();
-        let mat = new cv.Mat();
-        matcher.match(des1, des2, matches, mat);
+        const matches = new cv.DMatchVectorVector();
+        const mask = new cv.Mat();
+        matcher.knnMatch(des1, des2, matches, 2, mask, false);
 
-        let good = new cv.DMatchVector();
-        for (let i = 0; i < matches.size(); i++) {
-            let match = matches.get(i);
-            if (match.distance < matches.size()*0.25) {
-                good.push_back(match);
+        const ratio = .5, good = new cv.DMatchVectorVector();
+        for (const i = 0; i < matches.size(); i++) {
+            const m = matches.get(i).get(0), n = matches.get(i).get(1);
+            if (m.distance < ratio * n.distance) {
+                const t = new cv.DMatchVector();
+                t.push_back(m);
+                good.push_back(t);
             }
         }
 
-        let dst = new cv.Mat(height, width, cv.CV_8UC1);
-        cv.drawMatches(src, kp1, ref_img, kp2, good, dst);
+        const dst = new cv.Mat(height, width, cv.CV_8UC1);
+        // cv.drawMatches(src, kp1, ref_img, kp2, good, dst);
+        const mc = new cv.Scalar(-1, -1, -1, -1), sc = new cv.Scalar(0, 255, 0, 0), maskingCharVecVec = new cv.CharVectorVector();
+        cv.drawMatchesKnn(src, kp1, ref_img, kp2, good, dst, mc, sc, maskingCharVecVec, 2);
         // cv.drawKeypoints(ref_img, kp2, dst);
 
         cv.imshow("canvasOutput", dst);
@@ -108,7 +112,7 @@ function processVideo() {
 }
 
 function stopVideoProcessing() {
-    if (src != null && !src.isDeleted()) src.delete();
+    if (src != null && !src.isDeconsted()) src.deconste();
 }
 
 function main() {
