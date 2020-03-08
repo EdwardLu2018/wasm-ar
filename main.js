@@ -112,8 +112,8 @@ function processVideo() {
             let coords1_mat = cv.matFromArray(rows, cols, cv.CV_8UC1, coords1);
             let coords2_mat = cv.matFromArray(rows, cols, cv.CV_8UC1, coords2);
             // console.log(coords1_mat);
-            // let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
-            // console.log(H)
+            let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
+            console.log(H)
 
             cv.imshow("canvasOutput", dst);
 
