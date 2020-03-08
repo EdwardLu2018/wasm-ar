@@ -82,12 +82,15 @@ function processVideo() {
             let mat1 = new cv.Mat();
             let des1 = new cv.Mat();
             let kp1 = new cv.KeyPointVector();
+            mat1.delete();
 
             orb.detectAndCompute(src_gray, mat1, kp1, des1);
 
             let matches = new cv.DMatchVector();
             let mask = new cv.Mat();
             matcher.match(des1, des2, matches, mask);
+            mask.delete();
+            des1.delete();
 
             let good = new cv.DMatchVector();
             for (let i = 0; i < matches.size(); i++) {
@@ -97,30 +100,32 @@ function processVideo() {
                 }
             }
 
-            let dst = new cv.Mat(height, width, cv.CV_8UC1);
-            cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
-            // cv.drawKeypoints(ref_img, kp2, dst);
+            if (good.size() >= 4) {
+                let dst = new cv.Mat(height, width, cv.CV_8UC1);
+                cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
+                // cv.drawKeypoints(ref_img, kp2, dst);
 
-            const rows = good.size() / 2, cols = 2;
-            let coords1 = []
-            let coords2 = []
-            for (let i = 0; i < rows; i++) {
-                let m = good.get(i);
-                coords1.push(kp1.get(m.queryIdx).pt.x);
-                coords1.push(kp1.get(m.queryIdx).pt.y);
-                coords2.push(kp2.get(m.trainIdx).pt.x);
-                coords2.push(kp2.get(m.trainIdx).pt.y);
+                const rows = good.size() / 2, cols = 2;
+                let coords1 = []
+                let coords2 = []
+                for (let i = 0; i < rows; i++) {
+                    let m = good.get(i);
+                    coords1.push(kp1.get(m.queryIdx).pt.x);
+                    coords1.push(kp1.get(m.queryIdx).pt.y);
+                    coords2.push(kp2.get(m.trainIdx).pt.x);
+                    coords2.push(kp2.get(m.trainIdx).pt.y);
+                }
+               // console.log(coords1);
+               let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_64F, coords1);
+               let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_64F, coords2);
+
+               let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
+               console.log(H)
+
+                cv.imshow("canvasOutput", dst);
+
+                [kp1,matches,good,dst].forEach(m => m.delete());
             }
-           // console.log(coords1);
-           let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_64F, coords1);
-           let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_64F, coords2);
-
-           let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
-           console.log(H)
-
-            cv.imshow("canvasOutput", dst);
-
-            [mat1,des1,kp1,matches,mask,good,dst].forEach(m => m.delete());
         }
     }
     catch(err) {
