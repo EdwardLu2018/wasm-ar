@@ -53,7 +53,7 @@ function startCamera() {
             orb.detectAndCompute(ref_img, mat2, kp2, des2);
             mat2.delete();
 
-            matcher = new cv.BFMatcher(cv.NORM_HAMMING, true);
+            matcher = new cv.BFMatcher(cv.NORM_HAMMING);
         }
         startVideoProcessing();
     }, false);
@@ -72,7 +72,7 @@ function startVideoProcessing() {
 function processVideo() {
     stats.begin();
     vc.read(src);
-    try {
+    // try {
         let src_gray = new cv.Mat();
         cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
@@ -104,10 +104,10 @@ function processVideo() {
 
         cv.imshow("canvasOutput", dst);
         stats.end();
-    }
-    catch(err) {
-        console.log(err.message);
-    }
+    // }
+    // catch(err) {
+    //     console.log(err.message);
+    // }
     requestAnimationFrame(processVideo);
 }
 
