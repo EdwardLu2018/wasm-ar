@@ -113,18 +113,25 @@ function processVideo() {
                     coords2.push(kp2.get(m.trainIdx).pt.y);
                 }
 
-               // console.log(coords1);
-               let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_64F, coords1);
-               let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_64F, coords2);
+                // console.log(coords1);
+                let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_64F, coords1);
+                let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_64F, coords2);
 
-               let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
-               console.log(H)
+                let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
+                console.log(H)
 
-               coords1_mat.delete();
-               coords2_mat.delete();
+                coords1_mat.delete();
+                coords2_mat.delete();
 
 
-               cv.warpPerspective(ref_img, dst, H, src_gray.size);
+                cv.warpPerspective(
+                    ref_img,
+                    dst, H,
+                    new cv.Size(src.rows, src.cols),
+                    cv.INTER_LINEAR,
+                    cv.BORDER_CONSTANT,
+                    new cv.Scalar()
+                );
             }
 
             cv.imshow("canvasOutput", dst);
