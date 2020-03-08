@@ -74,7 +74,7 @@ function startVideoProcessing() {
 function processVideo() {
     stats.begin();
     vc.read(src);
-    try {
+    // try {
         if (frames % 2 == 0) {
             let src_gray = new cv.Mat();
             cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
@@ -120,10 +120,10 @@ function processVideo() {
 
             [mat1,des1,kp1,matches,mask,good,dst].forEach(m => m.delete());
         }
-    }
-    catch(err) {
-        console.log(err.message);
-    }
+    // }
+    // catch(err) {
+    //     console.log(err.message);
+    // }
     frames += 1;
     requestAnimationFrame(processVideo);
 }
