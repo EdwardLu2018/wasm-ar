@@ -73,14 +73,14 @@ function processVideo() {
     stats.begin();
     vc.read(src);
     try {
-        // let src_gray = new cv.Mat();
-        // cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
+        let src_gray = new cv.Mat();
+        cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
         let mat1 = new cv.Mat();
         let des1 = new cv.Mat();
         let kp1 = new cv.KeyPointVector();
 
-        orb.detectAndCompute(src, mat1, kp1, des1);
+        orb.detectAndCompute(src_gray, mat1, kp1, des1);
 
         let matches = new cv.DMatchVectorVector();
         let mask = new cv.Mat();
@@ -97,9 +97,9 @@ function processVideo() {
         }
 
         let dst = new cv.Mat(height, width, cv.CV_8UC1);
-        // cv.drawMatches(src, kp1, ref_img, kp2, good, dst);
+        // cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
         let mc = new cv.Scalar(-1, -1, -1, -1), sc = new cv.Scalar(0, 255, 0, 0), maskingCharVecVec = new cv.CharVectorVector();
-        cv.drawMatchesKnn(src, kp1, ref_img, kp2, good, dst, mc, sc, maskingCharVecVec, 2);
+        cv.drawMatchesKnn(src_gray, kp1, ref_img, kp2, good, dst, mc, sc, maskingCharVecVec, 2);
         // cv.drawKeypoints(ref_img, kp2, dst);
 
         cv.imshow("canvasOutput", dst);

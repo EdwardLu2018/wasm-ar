@@ -7,14 +7,15 @@
     <title>wasm opencv</title>
   </head>
   <body>
-    <div id="container">
-    </div>
+    <div id="container"></div>
+
     <video id="video" style="display: none;">Your browser does not support the video tag.</video>
     <div align="center">
         <canvas id="canvasOutput"></canvas>
-        <img id="ref" src="./ref.jpg" width="200" height="285" style="display: none;">
+        <img id="ref" src="./ref_gray.jpg" width="200" height="285" style="display: none;">
         <canvas id="canvasInput" width="200" height="285" style="display: none;"></canvas>
     </div>
+
     <script src="./main.js"></script>
     <script>
         main();
