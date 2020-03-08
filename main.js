@@ -8,12 +8,13 @@ let vc = null;
 let src = null;
 let dst = null;
 
-var stats = null;
+let stats = null;
 
 let orb = null;
 let matcher = null;
-// let ref_des = null;
 let ref_img = null;
+let des2 = null;
+let kp2 = null;
 
 window.onload = function() {
     var canvas = document.getElementById("canvasInput");
@@ -46,6 +47,12 @@ function startCamera() {
             orb = new cv.ORB(250);
             ref_img = cv.imread("ref");
 
+            let mat2 = new cv.Mat();
+            des2 = new cv.Mat();
+            kp2 = new cv.KeyPointVector();
+            orb.detectAndCompute(ref_img, mat2, kp2, des2);
+            mat2.delete();
+
             matcher = new cv.BFMatcher(cv.NORM_HAMMING);
         }
         startVideoProcessing();
@@ -69,12 +76,11 @@ function processVideo() {
         let src_gray = new cv.Mat();
         cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
-        let mat1 = new cv.Mat(), mat2 = new cv.Mat();
-        let des1 = new cv.Mat(), des2 = new cv.Mat();
-        let kp1 = new cv.KeyPointVector(), kp2 = new cv.KeyPointVector();
+        let mat1 = new cv.Mat();
+        let des1 = new cv.Mat();
+        let kp1 = new cv.KeyPointVector();
 
         orb.detectAndCompute(src_gray, mat1, kp1, des1);
-        orb.detectAndCompute(ref_img, mat2, kp2, des2);
 
         let matches = new cv.DMatchVector();
         let mat = new cv.Mat();
@@ -83,7 +89,7 @@ function processVideo() {
         let good = new cv.DMatchVector();
         for (let i = 0; i < matches.size(); i++) {
             let match = matches.get(i);
-            if (match.distance < matches.size()*0.15) {
+            if (match.distance < matches.size()*0.5) {
                 good.push_back(match);
             }
         }
