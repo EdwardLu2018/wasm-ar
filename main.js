@@ -90,7 +90,7 @@ function processVideo() {
         for (let i = 0; i < matches.size(); i++) {
             let m = matches.get(i);
             if (m.distance < matches.size()*0.25) {
-                good.push_back(t);
+                good.push_back(m);
             }
         }
 
