@@ -109,7 +109,7 @@ function processVideo() {
             //     coords1.push(kp1.get(m.queryIdx))
             // }
 
-            let H = cv.findHomography()
+            // let H = cv.findHomography()
 
             cv.imshow("canvasOutput", dst);
             stats.end();
