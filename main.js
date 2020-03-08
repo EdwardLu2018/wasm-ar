@@ -83,7 +83,7 @@ function processVideo() {
         let good = new cv.DMatchVector();
         for (let i = 0; i < matches.size(); i++) {
             let match = matches.get(i);
-            if (match.distance < 100) {
+            if (match.distance < matches.size()*0.15) {
                 good.push_back(match);
             }
         }
