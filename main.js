@@ -1,5 +1,5 @@
 let streaming = false;
-let width = window.innerWidth;
+let width = window.innerWidth / 2;
 let height = 0;
 
 let video = document.getElementById("video");
@@ -39,7 +39,7 @@ function startCamera() {
         console.log("An error occured! " + err);
     });
 
-    video.addEventListener("canplay", function(ev){
+    video.addEventListener("canplay", function(ev) {
         if (!streaming) {
             height = video.videoHeight / (video.videoWidth/width);
             video.setAttribute("width", width);
@@ -145,6 +145,7 @@ function processVideo() {
                     new cv.Size(width, height)
                 );
 
+                cv.cvtColor(hp_warp, hp_warp, cv.COLOR_RGBA2GRAY);
                 cv.multiply(hp_warp, mask_warp, dst, 1, cv.CV_32FC1);
             }
 
