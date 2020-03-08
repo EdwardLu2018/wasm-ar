@@ -77,7 +77,7 @@ function processVideo() {
     stats.begin();
     vc.read(src);
     try {
-        if (frames % 10 == 0) {
+        if (frames % 5 == 0) {
             let src_gray = new cv.Mat();
             cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
@@ -104,7 +104,7 @@ function processVideo() {
             // cv.drawKeypoints(ref_img, kp2, dst);
 
             if (good.size() >= 4) {
-                const rows = good.size() / 2, cols = 2;
+                const rows = good.size()/4, cols = 2;
                 let coords1 = []
                 let coords2 = []
                 for (let i = 0; i < rows; i++) {
@@ -115,12 +115,10 @@ function processVideo() {
                     coords2.push(kp2.get(m.trainIdx).pt.y);
                 }
 
-                // console.log(coords1);
                 let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
                 let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
 
                 let H = cv.findHomography(coords2_mat, coords1_mat, cv.RANSAC);
-                console.log(H)
 
                 coords1_mat.delete();
                 coords2_mat.delete();
