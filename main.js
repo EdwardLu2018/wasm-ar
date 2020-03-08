@@ -106,14 +106,17 @@ function processVideo() {
             let coords2 = []
             for (let i = 0; i < rows; i++) {
                 let m = good.get(i);
-                coords1.push([kp1.get(m.queryIdx).pt.x, kp1.get(m.queryIdx).pt.y]);
-                coords2.push([kp2.get(m.trainIdx).pt.x, kp2.get(m.trainIdx).pt.y]);
+                coords1.push(kp1.get(m.queryIdx).pt.x);
+                coords1.push(kp1.get(m.queryIdx).pt.y);
+                coords2.push(kp2.get(m.trainIdx).pt.x);
+                coords2.push(kp2.get(m.trainIdx).pt.y);
             }
-            let coords1_mat = cv.matFromArray(rows, cols, cv.CV_8UC1, coords1);
-            let coords2_mat = cv.matFromArray(rows, cols, cv.CV_8UC1, coords2);
-            // console.log(coords1_mat);
-            let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
-            console.log(H)
+           // console.log(coords1);
+           let coords1_mat = cv.matFromArray(coords1.length/2, cols, cv.CV_64F, coords1);
+           let coords2_mat = cv.matFromArray(coords2.length/2, cols, cv.CV_64F, coords2);
+
+           let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
+           console.log(H)
 
             cv.imshow("canvasOutput", dst);
 
