@@ -76,31 +76,30 @@ function processVideo() {
         // let src_gray = new cv.Mat();
         // cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
-        // let mat1 = new cv.Mat();
-        // let des1 = new cv.Mat();
-        // let kp1 = new cv.KeyPointVector();
+        let mat1 = new cv.Mat();
+        let des1 = new cv.Mat();
+        let kp1 = new cv.KeyPointVector();
 
-        // orb.detectAndCompute(src_gray, mat1, kp1, des1);
+        orb.detectAndCompute(src, mat1, kp1, des1);
 
-        // let matches = new cv.DMatchVector();
-        // let mat = new cv.Mat();
-        // matcher.match(des1, des2, matches, mat);
+        let matches = new cv.DMatchVector();
+        let mat = new cv.Mat();
+        matcher.match(des1, des2, matches, mat);
 
-        // let good = new cv.DMatchVector();
-        // for (let i = 0; i < matches.size(); i++) {
-        //     let match = matches.get(i);
-        //     if (match.distance < matches.size()*0.5) {
-        //         good.push_back(match);
-        //     }
-        // }
+        let good = new cv.DMatchVector();
+        for (let i = 0; i < matches.size(); i++) {
+            let match = matches.get(i);
+            if (match.distance < matches.size()*0.25) {
+                good.push_back(match);
+            }
+        }
 
         let dst = new cv.Mat(height, width, cv.CV_8UC1);
-        // cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
-        cv.drawKeypoints(ref_img, kp2, dst);
+        cv.drawMatches(src, kp1, ref_img, kp2, good, dst);
+        // cv.drawKeypoints(ref_img, kp2, dst);
 
         cv.imshow("canvasOutput", dst);
         stats.end();
-
     }
     catch(err) {
         console.log(err.message);
