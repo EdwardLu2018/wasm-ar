@@ -109,8 +109,9 @@ function processVideo() {
                 coords1.push(kp1.get(m.queryIdx).pt);
                 coords2.push(kp2.get(m.trainIdx).pt);
             }
-            let coords1_mat = cv.matFromArray(coords1);
-            let coords2_mat = cv.matFromArray(coords2);
+            const rows = good.size(), col = 2;
+            let coords1_mat = cv.matFromArray(rows, cols, "int", coords1);
+            let coords2_mat = cv.matFromArray(rows, cols, "int", coords2);
             let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
             console.log(H)
 
