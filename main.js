@@ -151,7 +151,10 @@ function processVideo() {
                 mask_warp_vec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
                 cv.merge(mask_warp_vec, mask_warp_img);
 
-                cv.multiply(hp_warp, mask_warp_img, dst, 1, cv.CV_32FC1);
+                src.convertTo(src, cv.CV_32FC4, 1/255);
+                console.log(src_gray.charAt(70,80))
+
+                cv.multiply(src, mask_warp_img, dst, 1, cv.CV_32FC1);
             }
 
             cv.imshow("canvasOutput", dst);
