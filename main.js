@@ -96,9 +96,6 @@ function processVideo() {
                     good.push_back(m);
                 }
             }
-            mask.delete();
-            des1.delete();
-            mat1.delete();
 
             let dst = new cv.Mat(height, width, cv.CV_8UC1);
             cv.drawMatches(src_gray, kp1, ref_img, kp2, good, dst);
@@ -122,12 +119,19 @@ function processVideo() {
 
                let H = cv.findHomography(coords1_mat, coords2_mat, cv.RANSAC);
                console.log(H)
+
                coords1_mat.delete();
                coords2_mat.delete();
+
+
+               cv.warpPerspective(ref_img, dst, H, src_gray.size);
             }
 
             cv.imshow("canvasOutput", dst);
-            dst.delete();
+            mat1.delete();
+            mask.delete();
+            des1.delete();
+            // dst.delete();
             kp1.delete();
         }
     }
