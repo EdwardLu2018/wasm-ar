@@ -15,6 +15,14 @@ let matcher = null;
 // let ref_des = null;
 let ref_img = null;
 
+window.onload = function() {
+    var canvas = document.getElementById("canvasInput");
+    canvas.width = width;
+    var ctx = canvas.getContext("2d");
+    var img = document.getElementById("ref");
+    ctx.drawImage(img, 0, 0);
+};
+
 function startCamera() {
     if (streaming) return;
     navigator.mediaDevices.getUserMedia({video: true, audio: false})

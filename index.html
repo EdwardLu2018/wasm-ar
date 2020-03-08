@@ -13,16 +13,10 @@
     <div align="center">
         <canvas id="canvasOutput"></canvas>
         <img id="ref" src="./ref_gray.jpg" style="display: none;">
-        <canvas id="canvasInput" style="display: none;"></canvas>
+        <canvas id="canvasInput" width="200" height="285" style="display: none;"></canvas>
     </div>
     <script src="./main.js"></script>
     <script>
-        window.onload = function() {
-            var canvas = document.getElementById("canvasInput");
-            var ctx = canvas.getContext("2d");
-            var img = document.getElementById("ref");
-            ctx.drawImage(img, 0, 0);
-        };
         main();
     </script>
 </body>
