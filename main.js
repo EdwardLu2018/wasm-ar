@@ -43,7 +43,7 @@ function startCamera() {
             streaming = true;
             vc = new cv.VideoCapture(video);
 
-            orb = new cv.AKAZE(5, 0, 3, 0.001, 4, 4, 1);
+            orb = new cv.ORB(500);
             ref_img = cv.imread("ref");
 
             matcher = new cv.DescriptorMatcher("BruteForce-Hamming");
