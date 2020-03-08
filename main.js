@@ -36,13 +36,6 @@ function startCamera() {
             vc = new cv.VideoCapture(video);
 
             orb = new cv.ORB(500);
-
-            // let im = new Image();
-            // im.src = "./ref.jpg";
-            // im.width = 1654;
-            // im.height = 2350;
-
-            // ref_img = new cv.Mat(height, width, cv.CV_8UC4);
             ref_img = cv.imread("ref");
 
             matcher = new cv.DescriptorMatcher("BruteForce-Hamming");
@@ -65,31 +58,31 @@ function processVideo() {
     stats.begin();
     vc.read(src);
     try {
-        // let src_gray = new cv.Mat();
-        // cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
+        let src_gray = new cv.Mat();
+        cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
-        // let mat1 = new cv.Mat(), mat2 = new cv.Mat();
-        // let des1 = new cv.Mat(), des2 = new cv.Mat();
-        // let kp1 = new cv.KeyPointVector(), kp2 = new cv.KeyPointVector();
+        let mat1 = new cv.Mat(), mat2 = new cv.Mat();
+        let des1 = new cv.Mat(), des2 = new cv.Mat();
+        let kp1 = new cv.KeyPointVector(), kp2 = new cv.KeyPointVector();
 
-        // orb.detectAndCompute(src, mat1, kp1, des1);
-        // orb.detectAndCompute(ref_img, mat2, kp2, des2);
+        orb.detectAndCompute(src, mat1, kp1, des1);
+        orb.detectAndCompute(ref_img, mat2, kp2, des2);
 
-        // let matches = new cv.DMatchVector();
-        // let mat = new cv.Mat();
-        // matcher.match(des1, des2, matches, mat);
+        let matches = new cv.DMatchVector();
+        let mat = new cv.Mat();
+        matcher.match(des1, des2, matches, mat);
 
-        // let good = new cv.DMatchVector();
-        // for (let i = 0; i < matches.size(); i++) {
-        //     let match = matches.get(i);
-        //     if (match.distance < 100) {
-        //         good.push_back(match);
-        //     }
-        // }
+        let good = new cv.DMatchVector();
+        for (let i = 0; i < matches.size(); i++) {
+            let match = matches.get(i);
+            if (match.distance < 100) {
+                good.push_back(match);
+            }
+        }
 
-        // let dst = new cv.Mat(height, width, cv.CV_8UC1);
-        // cv.drawMatches(src, kp1, ref_img, kp2, good, dst);
-        cv.imshow("canvasOutput", ref_img);
+        let dst = new cv.Mat(height, width, cv.CV_8UC1);
+        cv.drawMatches(src, kp1, ref_img, kp2, good, dst);
+        cv.imshow("canvasOutput", dst);
         stats.end();
 
     }
