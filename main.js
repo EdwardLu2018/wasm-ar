@@ -131,17 +131,21 @@ function processVideo() {
                     H,
                     new cv.Size(height, width)
                 );
+                mask.delete();
 
-                let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
-                cv.warpPerspective(
-                    hp_img,
-                    hp_warp,
-                    H,
-                    new cv.Size(height, width)
-                );
+                let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
+                cv.subtract(ones, mask_warp, dst);
 
-                // let template = new cv.Mat(height, width, cv.CV_32FC1);
-                cv.multiply(hp_warp, mask_warp, dst);
+                // let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
+                // cv.warpPerspective(
+                //     hp_img,
+                //     hp_warp,
+                //     H,
+                //     new cv.Size(height, width)
+                // );
+
+                // // let template = new cv.Mat(height, width, cv.CV_32FC1);
+                // cv.multiply(hp_warp, mask_warp, dst);
             }
 
             cv.imshow("canvasOutput", dst);
