@@ -124,7 +124,7 @@ function processVideo() {
             let matches = new cv.DMatchVector();
             matcher.match(des1, des2, matches, new cv.Mat());
 
-            let good = findBestMatches(0.1, matches);
+            let good = findBestMatches(matches, 0.1);
             // cv.drawMatches(srcGray, kp1, refImg, kp2, good, dst);
             // cv.drawKeypoints(refImg, kp2, dst);
             if (good.size() >= 10) {
