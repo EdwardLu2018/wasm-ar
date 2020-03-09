@@ -12,12 +12,11 @@ let width = 0;
 
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 const videoElement = document.getElementById("videoElement");
-// const tempCanvas = document.getElementById("tempCanvas");
 
 window.onload = function() {
-    var canvas = document.getElementById("canvasInput");
+    var canvas = document.getElementById("refCanvas");
     var ctx = canvas.getContext("2d");
-    var img = document.getElementById("ref_img");
+    var img = document.getElementById("refImg");
     ctx.drawImage(img, 0, 0);
 };
 
@@ -44,10 +43,10 @@ const startCamera = async() => {
 
 const init = async() => {
     orb = new cv.ORB(500);
-    arImg = cv.imread("ar_img");
+    arImg = cv.imread("arImg");
     arImg.convertTo(arImg, cv.CV_32FC4, 1/255);
 
-    refImg = cv.imread("ref_img");
+    refImg = cv.imread("refImg");
     [des2, kp2] = orbDetect(refImg);
 
     matcher = new cv.BFMatcher(cv.NORM_HAMMING);
@@ -173,7 +172,7 @@ const processVideo = async (captureFromVideo = true) => {
         const maskTmp = new cv.Mat();
         const ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
         cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
-        console.log("here")
+        maskTmp.delete();
 
         const maskWarpMat = create4ChanMat(maskWarp);
         const maskWarpInvMat = create4ChanMat(maskWarpInv);
@@ -187,6 +186,7 @@ const processVideo = async (captureFromVideo = true) => {
 
         const outTmp = new cv.Mat();
         cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
+        outTmp.delete();
 
         dst.convertTo(dst, cv.CV_8UC4, 255);
 
@@ -199,10 +199,8 @@ const processVideo = async (captureFromVideo = true) => {
         maskWarpInv.delete();
         maskWarpMat.delete();
         maskWarpInvMat.delete();
-        maskTmp.delete();
         maskedSrc.delete();
         maskedBook.delete();
-        outTmp.delete();
     }
 
     imWrite(dst, videoTargetCanvas);
@@ -215,7 +213,6 @@ const processVideo = async (captureFromVideo = true) => {
     src.delete();
     srcGray.delete();
 
-    frames += 1;
     stats.end();
     return;
 };
