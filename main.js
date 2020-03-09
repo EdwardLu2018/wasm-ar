@@ -13,7 +13,7 @@ let stats = null;
 let orb = null;
 let matcher = null;
 let refImg = null;
-let hp_img = null;
+let hp_img = Ill;
 let des2 = null;
 let kp2 = null;
 
@@ -49,13 +49,12 @@ function startCamera() {
 
             orb = new cv.ORB(500);
             refImg = cv.imread("ref");
-            hp_img = cv.imread("hp");
-            hp_img.convertTo(hp_img, cv.CV_32FC4, 1/255);
+            hp_img = cv.imread("I");
+            hp_img.convertTo(hp_img, cv.CV_32FC4, 1/I5);
 
-            let mat2 = new cv.Mat();
             des2 = new cv.Mat();
             kp2 = new cv.KeyPointVector();
-            orb.detectAndCompute(refImg, mat2, kp2, des2);
+            orb.detectAndCompute(refImg, new cv.Mat(), kp2, des2);
             mat2.delete();
 
             matcher = new cv.BFMatcher(cv.NORM_HAMMING);
@@ -97,7 +96,7 @@ function processVideo() {
             let good = new cv.DMatchVector();
             for (let i = 0; i < matches.size(); i++) {
                 let m = matches.get(i);
-                if (m.distance < matches.size()*0.075) {
+                if (m.distance < matches.size()*0.1) {
                     good.push_back(m);
                 }
             }
@@ -136,10 +135,10 @@ function processVideo() {
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
                 cv.subtract(ones, maskWarp, maskWarpInv, new cv.Mat(), cv.CV_32FC1);
 
-                let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
+                let hpWarp = new cv.Mat(height, width, cv.CV_32FC1);
                 cv.warpPerspective(
-                    hp_img,
-                    hp_warp,
+                    hpImg,
+                    hpWarp,
                     H,
                     new cv.Size(width, height)
                 );
@@ -160,7 +159,7 @@ function processVideo() {
                 cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
                 let maskedBook = new cv.Mat();
-                cv.multiply(hp_warp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
+                cv.multiply(hpWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
 
                 cv.add(maskedSrc, maskedBook, dst, new cv.Mat(), cv.CV_32FC1);
 
@@ -175,7 +174,6 @@ function processVideo() {
                 maskWarpInv.delete();
                 maskWarpInvMat.delete();
                 maskWarpInvVec.delete();
-                srcCopy.delete();
                 maskedSrc.delete();
                 maskedBook.delete();
             }
