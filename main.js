@@ -87,7 +87,8 @@ function create4ChanMat(mat) {
     let result = new cv.Mat();
     let vec = new cv.MatVector();
 
-    for (var i=0; i<3; i++) vec.push_back(mat);
+    for (var i=0; i<3; i++)
+        vec.push_back(mat);
     vec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
     cv.merge(vec, result);
 
@@ -117,7 +118,6 @@ function processVideo() {
 
             let srcCopy = src.clone();
             dst = srcCopy;
-            srcCopy.convertTo(srcCopy, cv.CV_32FC4, 1/255);
 
             let [des1, kp1] = orbDetect(srcGray);
 
@@ -153,10 +153,6 @@ function processVideo() {
                     new cv.Size(width, height)
                 );
 
-                let maskWarpInv = new cv.Mat();
-                let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
-                cv.subtract(ones, maskWarp, maskWarpInv, new cv.Mat(), cv.CV_32FC1);
-
                 let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
                 cv.warpPerspective(
                     arImg,
@@ -165,10 +161,15 @@ function processVideo() {
                     new cv.Size(width, height)
                 );
 
+                let maskWarpInv = new cv.Mat();
+                let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
+                cv.subtract(ones, maskWarp, maskWarpInv, new cv.Mat(), cv.CV_32FC1);
+
                 let maskWarpMat = create4ChanMat(maskWarp);
                 let maskWarpInvMat = create4ChanMat(maskWarpInv);
 
                 let maskedSrc = new cv.Mat();
+                srcCopy.convertTo(srcCopy, cv.CV_32FC4, 1/255);
                 cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
                 let maskedBook = new cv.Mat();
