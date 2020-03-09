@@ -142,7 +142,6 @@ const processVideo = async() => {
         dst.convertTo(dst, cv.CV_8UC4, 255);
     }
 
-    src.delete();
     srcGray.delete();
     kp1.delete();
     matches.delete();
