@@ -14,13 +14,6 @@ let width = 0;
 
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 const videoElement = document.getElementById("videoElement");
-// const refCanvas = document.getElementById("refCanvas");
-
-// window.onload = function() {
-//     var ctx = refCanvas.getContext("2d");
-//     var img = document.getElementById("refImg");
-//     ctx.drawImage(img, 0, 0);
-// };
 
 const startCamera = async() => {
     await navigator.mediaDevices.getUserMedia({
