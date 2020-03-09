@@ -108,9 +108,20 @@ function create4ChanMat(mat) {
     return result;
 }
 
+function invertMat(mat) {
+    const width = mat.size().width, height = mat.size().height;
+
+    let result = new cv.Mat();
+    let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
+    cv.subtract(ones, mat, result, new cv.Mat(), cv.CV_32FC1);
+
+    return result;
+}
+
 function processVideo() {
     stats.begin();
     vc.read(src);
+
     try {
         if (frames % 3 == 0) {
             let srcGray = new cv.Mat();
@@ -132,7 +143,7 @@ function processVideo() {
                 const rows = good.size(), cols = 2;
                 let coords1 = []
                 let coords2 = []
-                for (let i = 0; i < rows; i++) {
+                for (var i = 0; i < rows; i++) {
                     let m = good.get(i);
                     coords1.push(kp1.get(m.queryIdx).pt.x);
                     coords1.push(kp1.get(m.queryIdx).pt.y);
@@ -162,14 +173,9 @@ function processVideo() {
                     new cv.Size(width, height)
                 );
 
-                let maskWarpInv = new cv.Mat();
-                let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
-                cv.subtract(ones, maskWarp, maskWarpInv, new cv.Mat(), cv.CV_32FC1);
-
-                console.log("here")
+                let maskWarpInv = invertMat(maskWarp);
                 let maskWarpMat = create4ChanMat(maskWarp);
                 let maskWarpInvMat = create4ChanMat(maskWarpInv);
-                console.log("here1")
 
                 let maskedSrc = new cv.Mat();
                 srcCopy.convertTo(srcCopy, cv.CV_32FC4, 1/255);
@@ -203,6 +209,7 @@ function processVideo() {
     }
     stats.end();
     frames += 1;
+
     requestAnimationFrame(processVideo);
 }
 
