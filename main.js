@@ -81,15 +81,18 @@ function findBestMatches(matches, ratio) {
 }
 
 function create4ChanMat(mat) {
+    if (mat.channels() == 4) return mat;
     let {width, height} = mat.size();
     let result = new cv.Mat();
     let vec = new cv.MatVector();
+
     for (var i=0;i<3;i++)
         vec.push_back(mat);
-    mask.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
+    vec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
     cv.merge(vec, result);
+
     vec.delete();
-    mask.delete();
+
     return result;
 }
 
@@ -122,10 +125,8 @@ function processVideo() {
             matcher.match(des1, des2, matches, new cv.Mat());
 
             let good = findBestMatches(0.1, matches);
-
             // cv.drawMatches(srcGray, kp1, refImg, kp2, good, dst);
             // cv.drawKeypoints(refImg, kp2, dst);
-
             if (good.size() >= 10) {
                 const rows = good.size(), cols = 2;
                 let coords1 = []
@@ -153,7 +154,6 @@ function processVideo() {
                 );
 
                 let maskWarpInv = new cv.Mat();
-
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
                 cv.subtract(ones, maskWarp, maskWarpInv, new cv.Mat(), cv.CV_32FC1);
 
