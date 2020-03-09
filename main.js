@@ -118,92 +118,91 @@ function processVideo() {
     vc.read(src);
 
     try {
-        if (frames % 3 == 0) {
-            cv.cvtColor(src, srcGray, cv.COLOR_RGBA2GRAY);
+        cv.cvtColor(src, srcGray, cv.COLOR_RGBA2GRAY);
 
-            let srcCopy = src.clone();
-            dst = srcCopy;
+        dst = src;
 
-            let [des1, kp1] = orbDetect(srcGray);
+        let [des1, kp1] = orbDetect(srcGray);
 
-            let matches = new cv.DMatchVector();
-            let tmpMat = new cv.Mat();
-            matcher.match(des1, des2, matches, tmpMat);
+        let matches = new cv.DMatchVector();
+        let tmpMat = new cv.Mat();
+        matcher.match(des1, des2, matches, tmpMat);
 
-            let good = findBestMatches(matches, 0.1);
-            // cv.drawMatches(srcGray, kp1, refImg, kp2, good, dst);
-            // cv.drawKeypoints(refImg, kp2, dst);
-            if (good.size() >= 20) {
-                const rows = good.size(), cols = 2;
-                let coords1 = []
-                let coords2 = []
-                for (var i = 0; i < rows; i++) {
-                    let m = good.get(i);
-                    coords1.push(kp1.get(m.queryIdx).pt.x);
-                    coords1.push(kp1.get(m.queryIdx).pt.y);
-                    coords2.push(kp2.get(m.trainIdx).pt.x);
-                    coords2.push(kp2.get(m.trainIdx).pt.y);
-                }
-
-                let coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
-                let coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
-
-                let H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
-
-                let mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
-                let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
-                cv.warpPerspective(
-                    mask,
-                    maskWarp,
-                    H,
-                    new cv.Size(width, height)
-                );
-
-                let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
-                cv.warpPerspective(
-                    arImg,
-                    arWarp,
-                    H,
-                    new cv.Size(width, height)
-                );
-
-                let maskWarpInv = new cv.Mat();
-                let maskTmp = new cv.Mat();
-                cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
-
-                let maskWarpMat = create4ChanMat(maskWarp);
-                let maskWarpInvMat = create4ChanMat(maskWarpInv);
-
-                let maskedSrc = new cv.Mat();
-                srcCopy.convertTo(srcCopy, cv.CV_32FC4, 1/255);
-                cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
-
-                let maskedBook = new cv.Mat();
-                cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
-
-                let outTmp = new cv.Mat();
-                cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
-
-                H.delete();
-                coords1Mat.delete();
-                coords2Mat.delete();
-                mask.delete();
-                maskWarp.delete();
-                arWarp.delete();
-                maskWarpInv.delete();
-                maskWarpMat.delete();
-                maskWarpInvMat.delete();
-                maskTmp.delete();
-                maskedSrc.delete();
-                maskedBook.delete();
-                outTmp.delete();
+        let good = findBestMatches(matches, 0.1);
+        // cv.drawMatches(srcGray, kp1, refImg, kp2, good, dst);
+        // cv.drawKeypoints(refImg, kp2, dst);
+        if (good.size() >= 20) {
+            const rows = good.size(), cols = 2;
+            let coords1 = []
+            let coords2 = []
+            for (var i = 0; i < rows; i++) {
+                let m = good.get(i);
+                coords1.push(kp1.get(m.queryIdx).pt.x);
+                coords1.push(kp1.get(m.queryIdx).pt.y);
+                coords2.push(kp2.get(m.trainIdx).pt.x);
+                coords2.push(kp2.get(m.trainIdx).pt.y);
             }
-            des1.delete();
-            kp1.delete();
-            matches.delete();
-            tmpMat.delete();
-            good.delete();
+
+            let coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
+            let coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
+
+            let H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
+
+            let mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
+            let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
+            cv.warpPerspective(
+                mask,
+                maskWarp,
+                H,
+                new cv.Size(width, height)
+            );
+
+            let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
+            cv.warpPerspective(
+                arImg,
+                arWarp,
+                H,
+                new cv.Size(width, height)
+            );
+
+            let maskWarpInv = new cv.Mat();
+            let maskTmp = new cv.Mat();
+            cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
+
+            let maskWarpMat = create4ChanMat(maskWarp);
+            let maskWarpInvMat = create4ChanMat(maskWarpInv);
+
+            let maskedSrc = new cv.Mat();
+            let srcCopy = new cv.Mat();
+            src.convertTo(srcCopy, cv.CV_32FC4, 1/255);
+            cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
+
+            let maskedBook = new cv.Mat();
+            cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
+
+            let outTmp = new cv.Mat();
+            cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
+
+            H.delete();
+            coords1Mat.delete();
+            coords2Mat.delete();
+            mask.delete();
+            maskWarp.delete();
+            arWarp.delete();
+            maskWarpInv.delete();
+            maskWarpMat.delete();
+            maskWarpInvMat.delete();
+            maskTmp.delete();
+            maskedSrc.delete();
+            maskedBook.delete();
+            outTmp.delete();
+            srcCopy.delete();
         }
+        des1.delete();
+        kp1.delete();
+        matches.delete();
+        tmpMat.delete();
+        good.delete();
 
         cv.imshow("canvasOutput", dst);
     }
