@@ -52,7 +52,7 @@ function startCamera() {
             hp_img = cv.imread("I");
             hp_img.convertTo(hp_img, cv.CV_32FC4, 1/I5);
 
-            let {des2, kp2} = orbDetect(img);
+            {des2, kp2} = orbDetect(hp_img);
 
             matcher = new cv.BFMatcher(cv.NORM_HAMMING);
         }
@@ -94,9 +94,7 @@ function processVideo() {
             dst = srcCopy;
             srcCopy.convertTo(srcCopy, cv.CV_32FC4, 1/255);
 
-            let des1 = new cv.Mat();
-            let kp1 = new cv.KeyPointVector();
-            orb.detectAndCompute(srcGray, new cv.Mat(), kp1, des1);
+            let {des1, kp1} = orbDetect(srcGray);
 
             let matches = new cv.DMatchVector();
             matcher.match(des1, des2, matches, new cv.Mat());
