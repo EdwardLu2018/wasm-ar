@@ -133,6 +133,8 @@ function processVideo() {
                 );
                 mask.delete();
 
+                let mask_warp_inv = mask_warp.clone()
+
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
                 cv.subtract(ones, mask_warp, mask_warp, new cv.Mat(), cv.CV_32FC1);
                 ones.delete();
@@ -151,13 +153,22 @@ function processVideo() {
                 mask_warp_vec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
                 cv.merge(mask_warp_vec, mask_warp_img);
 
+                let mask_warp_inv_img = new cv.Mat();
+                let mask_warp_inv_vec = new cv.MatVector();
+                for (var i=0;i<3;i++) mask_warp_inv_vec.push_back(mask_warp_inv);
+                mask_warp_inv_vec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
+                cv.merge(mask_warp_inv_vec, mask_warp_inv_img);
+
                 let src_copy = src.clone()
                 src_copy.convertTo(src_copy, cv.CV_32FC4, 1/255);
 
-                let masked_book = new cv.Mat();
-                cv.multiply(src_copy, mask_warp_img, masked_book, 1, cv.CV_32FC1);
+                let masked_src = new cv.Mat();
+                cv.multiply(src_copy, mask_warp_inv_img, masked_src, 1, cv.CV_32FC4);
 
-                cv.add(masked_book, hp_warp, dst, new cv.Mat(), cv.CV_32FC1)
+                let masked_book = new cv.Mat();
+                cv.multiply(hp_warp, mask_warp_img, masked_book, 1, cv.CV_32FC4);
+
+                cv.add(masked_src, masked_book, dst, new cv.Mat(), cv.CV_32FC1)
             }
 
             cv.imshow("canvasOutput", dst);
