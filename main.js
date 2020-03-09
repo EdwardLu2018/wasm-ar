@@ -151,7 +151,7 @@ const processVideo = async (captureFromVideo = true) => {
         maskedBook.delete();
     }
 
-    imWrite(dst, videoTargetCanvas);
+    writeImToCanv(dst, videoTargetCanvas);
 
     des1.delete();
     kp1.delete();

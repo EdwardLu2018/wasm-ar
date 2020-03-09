@@ -41,4 +41,4 @@ const create4ChanMat = (mat) => {
     return result;
 };
 
-export default { readImFromCanv, writeImToCanv, create4ChanMat };
+export { readImFromCanv, writeImToCanv, create4ChanMat };
