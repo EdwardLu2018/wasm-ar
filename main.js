@@ -8,6 +8,9 @@ let des2 = null;
 let kp2 = null;
 let ones = null;
 
+let height = 0;
+let width = 0;
+
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 const videoElement = document.getElementById("videoElement");
 const tempCanvas = document.getElementById("tempCanvas");
@@ -28,8 +31,10 @@ const startCamera = async() => {
     })
     .then(stream => {
         const videoSettings = stream.getVideoTracks()[0].getSettings();
-        videoTargetCanvas.width = videoSettings.width;
-        videoTargetCanvas.height = videoSettings.height;
+        height = videoSettings.height;
+        width = videoSettings.width;
+        videoTargetCanvas.width = width;
+        videoTargetCanvas.height = height;
         videoElement.srcObject = stream;
         videoElement.play();
     })
