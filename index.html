@@ -7,22 +7,24 @@
 
     <script src="opencv.js"></script>
     <script src="https://threejs.org/examples/js/libs/stats.min.js"></script>
+
     <title>wasm opencv</title>
   </head>
   <body>
     <div id="stats"></div>
 
-    <video id="video" style="display: none;" playsinline>Your browser does not support the video tag.</video>
     <div align="center">
-        <canvas id="canvasOutput"></canvas>
+        <video id="videoElement" height="0" autoplay="" playsinline="">Your browser does not support the video tag.</video>
+        <div class="video">
+            <canvas id="videoTargetCanvas" style="display: none;"></canvas>
+            <canvas id="tempCanvas" style="display: none;"></canvas>
+        </div>
+
         <img id="ref_img" src="./ref_gray.jpg" width="200" height="285" style="display: none;">
         <img id="ar_img" src="./hp_cover.jpg" width="200" height="285" style="display: none;">
         <canvas id="canvasInput" width="200" height="285" style="display: none;"></canvas>
     </div>
 
     <script src="./main.js"></script>
-    <script>
-        main();
-    </script>
 </body>
 </html>

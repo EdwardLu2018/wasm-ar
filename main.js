@@ -1,14 +1,3 @@
-let streaming = false;
-let width = window.innerWidth * 3 / 4;
-let height = 0;
-
-let video = document.getElementById("video");
-let stream = null;
-let vc = null;
-let src = null;
-let srcGray = null;
-let dst = null;
-
 let stats = null;
 
 let orb = null;
@@ -19,50 +8,37 @@ let des2 = null;
 let kp2 = null;
 let ones = null;
 
-var frames = 0;
+const videoTargetCanvas = document.getElementById("videoTargetCanvas");
+const videoElement = document.getElementById("videoElement");
+const tempCanvas = document.getElementById("tempCanvas");
 
 window.onload = function() {
     var canvas = document.getElementById("canvasInput");
-    canvas.width = width;
     var ctx = canvas.getContext("2d");
     var img = document.getElementById("ref_img");
     ctx.drawImage(img, 0, 0);
 };
 
-function startCamera() {
-    if (streaming) return;
-    navigator.mediaDevices.getUserMedia({video: true, audio: false})
-    .then(function(s) {
-        stream = s;
-        video.srcObject = s;
-        video.play();
+const startCamera = async() => {
+    await navigator.mediaDevices.getUserMedia({
+        video: {
+            facingMode: "environment"
+        },
+        audio: false
+    })
+    .then(stream => {
+        const videoSettings = stream.getVideoTracks()[0].getSettings();
+        videoTargetCanvas.width = videoSettings.width;
+        videoTargetCanvas.height = videoSettings.height;
+        videoElement.srcObject = stream;
+        videoElement.play();
     })
     .catch(function(err) {
         console.log("An error occured! " + err);
     });
+};
 
-    video.addEventListener("canplay", function(ev) {
-        if (!streaming) {
-            height = video.videoHeight / (video.videoWidth/width);
-            video.setAttribute("width", width);
-            video.setAttribute("height", height);
-            streaming = true;
-            vc = new cv.VideoCapture(video);
-        }
-        startVideoProcessing();
-    }, false);
-}
-
-function startVideoProcessing() {
-    if (!streaming) {
-        alert("Please startup your webcam!");
-        return;
-    }
-    stopVideoProcessing();
-    src = new cv.Mat(height, width, cv.CV_8UC4);
-    srcGray = new cv.Mat(height, width, cv.CV_8UC1);
-    dst = new cv.Mat(height, width, cv.CV_8UC1);
-
+const init = async() => {
     orb = new cv.ORB(500);
     arImg = cv.imread("ar_img");
     arImg.convertTo(arImg, cv.CV_32FC4, 1/255);
@@ -73,19 +49,18 @@ function startVideoProcessing() {
     matcher = new cv.BFMatcher(cv.NORM_HAMMING);
 
     ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
-    requestAnimationFrame(processVideo);
-}
+};
 
-function orbDetect(img) {
+const orbDetect = (img) => {
     var des = new cv.Mat();
     var kps = new cv.KeyPointVector();
     let tmpMat = new cv.Mat();
     orb.detectAndCompute(img, tmpMat, kps, des);
     tmpMat.delete();
     return [des, kps];
-}
+};
 
-function findBestMatches(matches, ratio) {
+const findBestMatches = (matches, ratio) => {
     let bestMatches = new cv.DMatchVector();
     for (let i = 0; i < matches.size(); i++) {
         let m = matches.get(i);
@@ -94,9 +69,9 @@ function findBestMatches(matches, ratio) {
         }
     }
     return bestMatches;
-}
+};
 
-function create4ChanMat(mat) {
+const create4ChanMat = (mat) => {
     if (mat.channels() == 4) return mat;
 
     const width = mat.size().width, height = mat.size().height;
@@ -111,13 +86,75 @@ function create4ChanMat(mat) {
     vec.delete();
 
     return result;
-}
+};
 
-function processVideo() {
+const imgWrite = (src, dstCanvas) => {
+    const tmp = new cv.Mat(src);
+    if (tmp.type() === cv.CV_8UC1) {
+        cv.cvtColor(tmp, tmp, cv.COLOR_GRAY2RGBA);
+    }
+    else if (tmp.type() === cv.CV_8UC3) {
+        cv.cvtColor(tmp, tmp, cv.COLOR_RGB2RGBA);
+    }
+    const imgData = new ImageData(
+        new Uint8ClampedArray(tmp.data),
+        tmp.cols,
+        tmp.rows
+    );
+    const ctx = dstCanvas.getContext("2d");
+    dstCanvas.width = tmp.cols;
+    dstCanvas.height = tmp.rows;
+    ctx.putImageData(imgData, 0, 0);
+    tmp.delete();
+};
+
+const imgRead = (canvas)=> {
+    const ctx = canvas.getContext("2d");
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    return cv.matFromImageData(imgData)
+};
+
+const rescale = (src, targetWidth) => {
+    const dst = new cv.Mat();
+    const srcSize = src.size();
+    const dstSize = new cv.Size(
+        targetWidth,
+        (srcSize.height * targetWidth) / srcSize.width
+    );
+    cv.resize(src, dst, dstSize);
+    return dst;
+};
+
+// function startVideoProcessing() {
+//     if (!streaming) {
+//         alert("Please startup your webcam!");
+//         return;
+//     }
+//     stopVideoProcessing();
+//     src = new cv.Mat(height, width, cv.CV_8UC4);
+//     srcGray = new cv.Mat(height, width, cv.CV_8UC1);
+//     dst = new cv.Mat(height, width, cv.CV_8UC1);
+
+
+//     requestAnimationFrame(processVideo);
+// };
+
+const processVideo = async () => {
     stats.begin();
-    vc.read(src);
+    if (captureFromVideo) {
+        videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
+    }
+
+    tempCanvas.style.display = "none";
+    videoTargetCanvas.style.display = "block";
+
+    const imgBuffer = imgRead(videoTargetCanvas);
+    const src = rescale(imgBuffer);
 
     try {
+        let srcGray = new cv.Mat();
+        let dst = new cv.Mat();
+
         cv.cvtColor(src, srcGray, cv.COLOR_RGBA2GRAY);
 
         let [des1, kp1] = orbDetect(srcGray);
@@ -206,7 +243,7 @@ function processVideo() {
         matches.delete();
         tmpMat.delete();
         good.delete();
-
+        srcGray.delete();
     }
     catch (err) {
         console.log(err.message);
@@ -214,21 +251,22 @@ function processVideo() {
     stats.end();
     frames += 1;
 
-    requestAnimationFrame(processVideo);
-}
+    imgWrite(src, videoTargetCanvas);
 
-function stopVideoProcessing() {
-    if (src != null && !src.isDeleted()) src.delete();
-    if (dst != null && !dst.isDeleted()) dst.delete();
-}
+    src.delete();
+    imgBuffer.delete();
+    return;
+};
 
-function initStats() {
+const initStats = async() => {
     stats = new Stats();
     stats.showPanel(0);
-    document.getElementById('stats').appendChild(stats.domElement);
-}
+    document.getElementById("stats").appendChild(stats.domElement);
+};
 
-function main() {
-    initStats();
-    startCamera();
-}
+cv["onRuntimeInitialized"] = async () => {
+    await init();
+    await initStats();
+    await startCamera();
+    setInterval(processVideo, 100);
+};
