@@ -198,7 +198,6 @@ function processVideo() {
 
 function stopVideoProcessing() {
     if (src != null && !src.isDeleted()) src.delete();
-    alert("Error!");
 }
 
 function main() {
