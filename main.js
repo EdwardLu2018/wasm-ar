@@ -90,8 +90,7 @@ function processVideo() {
             orb.detectAndCompute(src_gray, mat1, kp1, des1);
 
             let matches = new cv.DMatchVector();
-            let mask = new cv.Mat();
-            matcher.match(des1, des2, matches, mask);
+            matcher.match(des1, des2, matches, new cv.Mat());
 
             let good = new cv.DMatchVector();
             for (let i = 0; i < matches.size(); i++) {
@@ -121,9 +120,6 @@ function processVideo() {
 
                 let H = cv.findHomography(coords2_mat, coords1_mat, cv.RANSAC);
 
-                coords1_mat.delete();
-                coords2_mat.delete();
-
                 let mask = new cv.Mat(ref_img.rows, ref_img.cols, cv.CV_32FC1, [1,1,1,1]);
                 let mask_warp = new cv.Mat(height, width, cv.CV_32FC1);
                 cv.warpPerspective(
@@ -132,13 +128,11 @@ function processVideo() {
                     H,
                     new cv.Size(width, height)
                 );
-                mask.delete();
 
                 let mask_warp_inv = new cv.Mat();
 
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
                 cv.subtract(ones, mask_warp, mask_warp_inv, new cv.Mat(), cv.CV_32FC1);
-                ones.delete();
 
                 let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
                 cv.warpPerspective(
@@ -169,14 +163,34 @@ function processVideo() {
                 let masked_book = new cv.Mat();
                 cv.multiply(hp_warp, mask_warp_img, masked_book, 1, cv.CV_32FC4);
 
-                cv.add(masked_src, masked_book, dst, new cv.Mat(), cv.CV_32FC1)
+                cv.add(masked_src, masked_book, dst, new cv.Mat(), cv.CV_32FC1);
+
+
             }
 
             cv.imshow("canvasOutput", dst);
             mat1.delete();
-            mask.delete();
             des1.delete();
             kp1.delete();
+            matches.delete();
+            good.delete();
+            coords1_mat.delete();
+            coords2_mat.delete();
+            H.delete();
+            mask.delete();
+            mask_warp.delete();
+            mask_warp_img.delete();
+            mask_warp_vec.delete();
+            ones.delete();
+            mask_warp_inv.delete();
+            mask_warp_inv_img.delete();
+            mask_warp_inv_vec.delete();
+            src_copy.delete();
+            masked_src.delete();
+            masked_book.delete();
+        }
+        else {
+            dst = src.clone();
         }
     }
     catch(err) {
