@@ -50,6 +50,7 @@ function startCamera() {
             orb = new cv.ORB(500);
             ref_img = cv.imread("ref");
             hp_img = cv.imread("hp");
+            hp_img.convertTo(hp_img, cv.CV_32FC4, 1/255);
 
             let mat2 = new cv.Mat();
             des2 = new cv.Mat();
