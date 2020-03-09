@@ -63,7 +63,7 @@ function startCamera() {
 function orbDetect(img) {
     var des = new cv.Mat();
     var kps = new cv.KeyPointVector();
-    orb.detectAndCompute(img, new cv.Mat(), kp2, des2);
+    orb.detectAndCompute(img, new cv.Mat(), kps, des);
     mat2.delete();
     return [des, kps]
 }
@@ -77,6 +77,19 @@ function findBestMatches(matches, ratio) {
         }
     }
     return bestMatches;
+}
+
+function create4ChanMask(mask) {
+    let {width, height} = mask.size();
+    let mat = new cv.Mat();
+    let vec = new cv.MatVector();
+    for (var i=0;i<3;i++)
+        vec.push_back(mask);
+    mask.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
+    cv.merge(vec, mat);
+    vec.delete();
+    mask.delete();
+    return mat;
 }
 
 function startVideoProcessing() {
@@ -151,17 +164,8 @@ function processVideo() {
                     new cv.Size(width, height)
                 );
 
-                let maskWarpMat = new cv.Mat();
-                let maskWarpVec = new cv.MatVector();
-                for (var i=0;i<3;i++) maskWarpVec.push_back(maskWarp);
-                maskWarpVec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
-                cv.merge(maskWarpVec, maskWarpMat);
-
-                let maskWarpInvMat = new cv.Mat();
-                let maskWarpInvVec = new cv.MatVector();
-                for (var i=0;i<3;i++) maskWarpInvVec.push_back(maskWarpInv);
-                maskWarpInvVec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
-                cv.merge(maskWarpInvVec, maskWarpInvMat);
+                let maskWarpMat = create4ChanMask(maskWarp);
+                let maskWarpInvMat = create4ChanMask(maskWarpInv);
 
                 let maskedSrc = new cv.Mat();
                 cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
@@ -175,13 +179,7 @@ function processVideo() {
                 mask.delete();
                 coords1Mat.delete();
                 coords2Mat.delete();
-                maskWarp.delete();
-                maskWarpMat.delete();
-                maskWarpVec.delete();
                 ones.delete();
-                maskWarpInv.delete();
-                maskWarpInvMat.delete();
-                maskWarpInvVec.delete();
                 maskedSrc.delete();
                 maskedBook.delete();
             }
