@@ -23,7 +23,7 @@ window.onload = function() {
     var canvas = document.getElementById("canvasInput");
     canvas.width = width;
     var ctx = canvas.getContext("2d");
-    var img = document.getElementById("ref");
+    var img = document.getElementById("ref_img");
     ctx.drawImage(img, 0, 0);
 };
 
