@@ -134,10 +134,10 @@ function processVideo() {
                 );
                 mask.delete();
 
-                let mask_warp_inv = mask_warp.clone()
+                let mask_warp_inv = new cv.Mat();
 
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
-                cv.subtract(ones, mask_warp, mask_warp, new cv.Mat(), cv.CV_32FC1);
+                cv.subtract(ones, mask_warp, mask_warp_inv, new cv.Mat(), cv.CV_32FC1);
                 ones.delete();
 
                 let hp_warp = new cv.Mat(height, width, cv.CV_32FC1);
