@@ -14,10 +14,10 @@ let width = 0;
 
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 const videoElement = document.getElementById("videoElement");
+const refCanvas = document.getElementById("refCanvas");
 
 window.onload = function() {
-    var canvas = document.getElementById("refCanvas");
-    var ctx = canvas.getContext("2d");
+    var ctx = refCanvas.getContext("2d");
     var img = document.getElementById("refImg");
     ctx.drawImage(img, 0, 0);
 };

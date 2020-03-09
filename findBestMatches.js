@@ -9,4 +9,4 @@ const findBestMatches = (matches, ratio) => {
     return bestMatches;
 };
 
-export { findBestMatches };
+export default findBestMatches;
