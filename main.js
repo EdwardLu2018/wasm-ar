@@ -142,110 +142,107 @@ const processVideo = async (captureFromVideo = true) => {
     const imgBuffer = imgRead(videoTargetCanvas);
     const src = rescale(imgBuffer);
 
-    try {
-        let srcGray = new cv.Mat();
-        let dst = new cv.Mat();
+    let srcGray = new cv.Mat();
+    let dst = new cv.Mat();
 
-        cv.cvtColor(src, srcGray, cv.COLOR_RGBA2GRAY);
+    cv.cvtColor(src, srcGray, cv.COLOR_RGBA2GRAY);
 
-        let [des1, kp1] = orbDetect(srcGray);
+    dst = srcGray;
 
-        let matches = new cv.DMatchVector();
-        let tmpMat = new cv.Mat();
-        matcher.match(des1, des2, matches, tmpMat);
+    // let [des1, kp1] = orbDetect(srcGray);
 
-        let good = findBestMatches(matches, 0.1);
-        // cv.drawMatches(srcGray, kp1, refImg, kp2, good, dst);
-        // cv.drawKeypoints(refImg, kp2, dst);
-        if (good.size() >= 20) {
-            const rows = good.size(), cols = 2;
-            let coords1 = []
-            let coords2 = []
-            for (var i = 0; i < rows; i++) {
-                let m = good.get(i);
-                coords1.push(kp1.get(m.queryIdx).pt.x);
-                coords1.push(kp1.get(m.queryIdx).pt.y);
-                coords2.push(kp2.get(m.trainIdx).pt.x);
-                coords2.push(kp2.get(m.trainIdx).pt.y);
-            }
+    // let matches = new cv.DMatchVector();
+    // let tmpMat = new cv.Mat();
+    // matcher.match(des1, des2, matches, tmpMat);
 
-            let coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
-            let coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
+    // let good = findBestMatches(matches, 0.1);
 
-            let H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
+    // if (good.size() >= 20) {
+    //     const rows = good.size(), cols = 2;
+    //     let coords1 = []
+    //     let coords2 = []
+    //     for (var i = 0; i < rows; i++) {
+    //         let m = good.get(i);
+    //         coords1.push(kp1.get(m.queryIdx).pt.x);
+    //         coords1.push(kp1.get(m.queryIdx).pt.y);
+    //         coords2.push(kp2.get(m.trainIdx).pt.x);
+    //         coords2.push(kp2.get(m.trainIdx).pt.y);
+    //     }
 
-            let mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
-            let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
-            cv.warpPerspective(
-                mask,
-                maskWarp,
-                H,
-                new cv.Size(width, height)
-            );
+    //     let coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
+    //     let coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
 
-            let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
-            cv.warpPerspective(
-                arImg,
-                arWarp,
-                H,
-                new cv.Size(width, height)
-            );
+    //     let H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
 
-            let maskWarpInv = new cv.Mat();
-            let maskTmp = new cv.Mat();
-            cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
+    //     let mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
+    //     let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
+    //     cv.warpPerspective(
+    //         mask,
+    //         maskWarp,
+    //         H,
+    //         new cv.Size(width, height)
+    //     );
 
-            let maskWarpMat = create4ChanMat(maskWarp);
-            let maskWarpInvMat = create4ChanMat(maskWarpInv);
+    //     let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
+    //     cv.warpPerspective(
+    //         arImg,
+    //         arWarp,
+    //         H,
+    //         new cv.Size(width, height)
+    //     );
 
-            let maskedSrc = new cv.Mat();
-            let srcCopy = new cv.Mat();
-            src.convertTo(srcCopy, cv.CV_32FC4, 1/255);
-            cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
+    //     let maskWarpInv = new cv.Mat();
+    //     let maskTmp = new cv.Mat();
+    //     cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
 
-            let maskedBook = new cv.Mat();
-            cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
+    //     let maskWarpMat = create4ChanMat(maskWarp);
+    //     let maskWarpInvMat = create4ChanMat(maskWarpInv);
 
-            let outTmp = new cv.Mat();
-            cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
+    //     let maskedSrc = new cv.Mat();
+    //     let srcCopy = new cv.Mat();
+    //     src.convertTo(srcCopy, cv.CV_32FC4, 1/255);
+    //     cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
-            cv.imshow("canvasOutput", dst);
+    //     let maskedBook = new cv.Mat();
+    //     cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
 
-            H.delete();
-            coords1Mat.delete();
-            coords2Mat.delete();
-            mask.delete();
-            maskWarp.delete();
-            arWarp.delete();
-            maskWarpInv.delete();
-            maskWarpMat.delete();
-            maskWarpInvMat.delete();
-            maskTmp.delete();
-            maskedSrc.delete();
-            maskedBook.delete();
-            outTmp.delete();
-            srcCopy.delete();
-        }
-        else {
-            cv.imshow("canvasOutput", src);
-        }
-        des1.delete();
-        kp1.delete();
-        matches.delete();
-        tmpMat.delete();
-        good.delete();
-        srcGray.delete();
-    }
-    catch (err) {
-        console.log(err.message);
-    }
-    stats.end();
-    frames += 1;
+    //     let outTmp = new cv.Mat();
+    //     cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
 
-    imgWrite(src, videoTargetCanvas);
+    //     cv.imshow("canvasOutput", dst);
+
+    //     H.delete();
+    //     coords1Mat.delete();
+    //     coords2Mat.delete();
+    //     mask.delete();
+    //     maskWarp.delete();
+    //     arWarp.delete();
+    //     maskWarpInv.delete();
+    //     maskWarpMat.delete();
+    //     maskWarpInvMat.delete();
+    //     maskTmp.delete();
+    //     maskedSrc.delete();
+    //     maskedBook.delete();
+    //     outTmp.delete();
+    //     srcCopy.delete();
+    // }
+    // else {
+    //     cv.imshow("canvasOutput", src);
+    // }
+    // des1.delete();
+    // kp1.delete();
+    // matches.delete();
+    // tmpMat.delete();
+    // good.delete();
+
+    imgWrite(dst, videoTargetCanvas);
 
     src.delete();
     imgBuffer.delete();
+    srcGray.delete();
+
+    frames += 1;
+    stats.end();
     return;
 };
 
