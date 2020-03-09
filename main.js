@@ -157,39 +157,39 @@ const processVideo = async (captureFromVideo = true) => {
         let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
         cv.warpPerspective(
             mask,
-            dst, // maskWarp
+            maskWarp,
             H,
             new cv.Size(width, height)
         );
 
-        // let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
-        // cv.warpPerspective(
-        //     arImg,
-        //     arWarp,
-        //     H,
-        //     new cv.Size(width, height)
-        // );
+        let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
+        cv.warpPerspective(
+            arImg,
+            arWarp,
+            H,
+            new cv.Size(width, height)
+        );
 
-        // let maskWarpInv = new cv.Mat();
-        // let maskTmp = new cv.Mat();
-        // const ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
-        // cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
-        // console.log("here")
+        let maskWarpInv = new cv.Mat();
+        let maskTmp = new cv.Mat();
+        const ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
+        cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
+        console.log("here")
 
-        // let maskWarpMat = create4ChanMat(maskWarp);
-        // let maskWarpInvMat = create4ChanMat(maskWarpInv);
+        let maskWarpMat = create4ChanMat(maskWarp);
+        let maskWarpInvMat = create4ChanMat(maskWarpInv);
 
-        // let maskedSrc = new cv.Mat();
-        // src.convertTo(src, cv.CV_32FC4, 1/255);
-        // cv.multiply(src, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
+        let maskedSrc = new cv.Mat();
+        src.convertTo(src, cv.CV_32FC4, 1/255);
+        cv.multiply(src, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
-        // let maskedBook = new cv.Mat();
-        // cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
+        let maskedBook = new cv.Mat();
+        cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
 
-        // let outTmp = new cv.Mat();
-        // cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
+        let outTmp = new cv.Mat();
+        cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
 
-        // dst.convertTo(dst, cv.CV_8UC4);
+        dst.convertTo(dst, cv.CV_8UC4, 255);
 
         // H.delete();
         // coords1Mat.delete();
