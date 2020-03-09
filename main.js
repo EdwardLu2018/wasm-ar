@@ -13,7 +13,7 @@ let width = 0;
 
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 const videoElement = document.getElementById("videoElement");
-const tempCanvas = document.getElementById("tempCanvas");
+// const tempCanvas = document.getElementById("tempCanvas");
 
 window.onload = function() {
     var canvas = document.getElementById("canvasInput");
@@ -130,28 +130,14 @@ const rescale = (src, targetWidth) => {
     return dst;
 };
 
-// function startVideoProcessing() {
-//     if (!streaming) {
-//         alert("Please startup your webcam!");
-//         return;
-//     }
-//     stopVideoProcessing();
-//     src = new cv.Mat(height, width, cv.CV_8UC4);
-//     srcGray = new cv.Mat(height, width, cv.CV_8UC1);
-//     dst = new cv.Mat(height, width, cv.CV_8UC1);
-
-
-//     requestAnimationFrame(processVideo);
-// };
-
-const processVideo = async () => {
+const processVideo = async (captureFromVideo = true) => {
     stats.begin();
     if (captureFromVideo) {
         videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
     }
 
-    tempCanvas.style.display = "none";
-    videoTargetCanvas.style.display = "block";
+    // tempCanvas.style.display = "none";
+    // videoTargetCanvas.style.display = "block";
 
     const imgBuffer = imgRead(videoTargetCanvas);
     const src = rescale(imgBuffer);
