@@ -48,11 +48,11 @@ function startCamera() {
             vc = new cv.VideoCapture(video);
 
             orb = new cv.ORB(500);
-            refImg = cv.imread("ref_img");
             arImg = cv.imread("ar_img");
             arImg.convertTo(arImg, cv.CV_32FC4, 1/255);
 
-            [des2, kp2] = orbDetect(arImg);
+            refImg = cv.imread("ref_img");
+            [des2, kp2] = orbDetect(refImg);
 
             matcher = new cv.BFMatcher(cv.NORM_HAMMING);
         }
