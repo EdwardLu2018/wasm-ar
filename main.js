@@ -63,9 +63,10 @@ function startCamera() {
 function orbDetect(img) {
     var des = new cv.Mat();
     var kps = new cv.KeyPointVector();
-    orb.detectAndCompute(img, new cv.Mat(), kps, des);
-    mat2.delete();
-    return [des, kps]
+    let tmpMat = new cv.Mat();
+    orb.detectAndCompute(img, tmpMat, kps, des);
+    tmpMat.delete();
+    return [des, kps];
 }
 
 function findBestMatches(matches, ratio) {
@@ -79,17 +80,17 @@ function findBestMatches(matches, ratio) {
     return bestMatches;
 }
 
-function create4ChanMask(mask) {
-    let {width, height} = mask.size();
-    let mat = new cv.Mat();
+function create4ChanMat(mat) {
+    let {width, height} = mat.size();
+    let result = new cv.Mat();
     let vec = new cv.MatVector();
     for (var i=0;i<3;i++)
-        vec.push_back(mask);
+        vec.push_back(mat);
     mask.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
-    cv.merge(vec, mat);
+    cv.merge(vec, result);
     vec.delete();
     mask.delete();
-    return mat;
+    return result;
 }
 
 function startVideoProcessing() {
@@ -164,8 +165,8 @@ function processVideo() {
                     new cv.Size(width, height)
                 );
 
-                let maskWarpMat = create4ChanMask(maskWarp);
-                let maskWarpInvMat = create4ChanMask(maskWarpInv);
+                let maskWarpMat = create4ChanMat(maskWarp);
+                let maskWarpInvMat = create4ChanMat(maskWarpInv);
 
                 let maskedSrc = new cv.Mat();
                 cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
