@@ -6,6 +6,7 @@ let video = document.getElementById("video");
 let stream = null;
 let vc = null;
 let src = null;
+let srcGray = null;
 let dst = null;
 
 let stats = null;
@@ -47,17 +48,6 @@ function startCamera() {
             video.setAttribute("height", height);
             streaming = true;
             vc = new cv.VideoCapture(video);
-
-            orb = new cv.ORB(500);
-            arImg = cv.imread("ar_img");
-            arImg.convertTo(arImg, cv.CV_32FC4, 1/255);
-
-            refImg = cv.imread("ref_img");
-            [des2, kp2] = orbDetect(refImg);
-
-            matcher = new cv.BFMatcher(cv.NORM_HAMMING);
-
-            ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
         }
         startVideoProcessing();
     }, false);
@@ -70,7 +60,19 @@ function startVideoProcessing() {
     }
     stopVideoProcessing();
     src = new cv.Mat(height, width, cv.CV_8UC4);
+    srcGray = new cv.Mat(height, width, cv.CV_8UC1);
     dst = new cv.Mat(height, width, cv.CV_8UC1);
+
+    orb = new cv.ORB(500);
+    arImg = cv.imread("ar_img");
+    arImg.convertTo(arImg, cv.CV_32FC4, 1/255);
+
+    refImg = cv.imread("ref_img");
+    [des2, kp2] = orbDetect(refImg);
+
+    matcher = new cv.BFMatcher(cv.NORM_HAMMING);
+
+    ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
     requestAnimationFrame(processVideo);
 }
 
@@ -95,6 +97,7 @@ function findBestMatches(matches, ratio) {
 }
 
 function create4ChanMat(mat) {
+    console.log(mat)
     if (mat.channels() == 4) return mat;
 
     const width = mat.size().width, height = mat.size().height;
@@ -117,7 +120,6 @@ function processVideo() {
 
     try {
         if (frames % 3 == 0) {
-            let srcGray = new cv.Mat();
             cv.cvtColor(src, srcGray, cv.COLOR_RGBA2GRAY);
 
             let srcCopy = src.clone();
@@ -209,6 +211,7 @@ function processVideo() {
 
 function stopVideoProcessing() {
     if (src != null && !src.isDeleted()) src.delete();
+    if (dst != null && !dst.isDeleted()) dst.delete();
 }
 
 function main() {
