@@ -136,9 +136,6 @@ const processVideo = async (captureFromVideo = true) => {
         videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
     }
 
-    // tempCanvas.style.display = "none";
-    // videoTargetCanvas.style.display = "block";
-
     const imgBuffer = imgRead(videoTargetCanvas);
     const src = rescale(imgBuffer, 500);
 
@@ -157,80 +154,81 @@ const processVideo = async (captureFromVideo = true) => {
     let good = findBestMatches(matches, 0.1);
 
     if (good.size() >= 20) {
-        const rows = good.size(), cols = 2;
-        let coords1 = []
-        let coords2 = []
-        for (var i = 0; i < rows; i++) {
-            let m = good.get(i);
-            coords1.push(kp1.get(m.queryIdx).pt.x);
-            coords1.push(kp1.get(m.queryIdx).pt.y);
-            coords2.push(kp2.get(m.trainIdx).pt.x);
-            coords2.push(kp2.get(m.trainIdx).pt.y);
-        }
+        console.log("here")
+        // const rows = good.size(), cols = 2;
+        // let coords1 = []
+        // let coords2 = []
+        // for (var i = 0; i < rows; i++) {
+        //     let m = good.get(i);
+        //     coords1.push(kp1.get(m.queryIdx).pt.x);
+        //     coords1.push(kp1.get(m.queryIdx).pt.y);
+        //     coords2.push(kp2.get(m.trainIdx).pt.x);
+        //     coords2.push(kp2.get(m.trainIdx).pt.y);
+        // }
 
-        let coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
-        let coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
+        // let coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
+        // let coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
 
-        let H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
+        // let H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
 
-        let mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
-        let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
-        cv.warpPerspective(
-            mask,
-            maskWarp,
-            H,
-            new cv.Size(width, height)
-        );
+        // let mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
+        // let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
+        // cv.warpPerspective(
+        //     mask,
+        //     maskWarp,
+        //     H,
+        //     new cv.Size(width, height)
+        // );
 
-        let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
-        cv.warpPerspective(
-            arImg,
-            arWarp,
-            H,
-            new cv.Size(width, height)
-        );
+        // let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
+        // cv.warpPerspective(
+        //     arImg,
+        //     arWarp,
+        //     H,
+        //     new cv.Size(width, height)
+        // );
 
-        let maskWarpInv = new cv.Mat();
-        let maskTmp = new cv.Mat();
-        cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
+        // let maskWarpInv = new cv.Mat();
+        // let maskTmp = new cv.Mat();
+        // cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
 
-        let maskWarpMat = create4ChanMat(maskWarp);
-        let maskWarpInvMat = create4ChanMat(maskWarpInv);
+        // let maskWarpMat = create4ChanMat(maskWarp);
+        // let maskWarpInvMat = create4ChanMat(maskWarpInv);
 
-        let maskedSrc = new cv.Mat();
-        let srcCopy = new cv.Mat();
-        src.convertTo(srcCopy, cv.CV_32FC4, 1/255);
-        cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
+        // let maskedSrc = new cv.Mat();
+        // let srcCopy = new cv.Mat();
+        // src.convertTo(srcCopy, cv.CV_32FC4, 1/255);
+        // cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
-        let maskedBook = new cv.Mat();
-        cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
+        // let maskedBook = new cv.Mat();
+        // cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
 
-        let outTmp = new cv.Mat();
-        cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
+        // let outTmp = new cv.Mat();
+        // cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
 
-        H.delete();
-        coords1Mat.delete();
-        coords2Mat.delete();
-        mask.delete();
-        maskWarp.delete();
-        arWarp.delete();
-        maskWarpInv.delete();
-        maskWarpMat.delete();
-        maskWarpInvMat.delete();
-        maskTmp.delete();
-        maskedSrc.delete();
-        maskedBook.delete();
-        outTmp.delete();
-        srcCopy.delete();
+        // H.delete();
+        // coords1Mat.delete();
+        // coords2Mat.delete();
+        // mask.delete();
+        // maskWarp.delete();
+        // arWarp.delete();
+        // maskWarpInv.delete();
+        // maskWarpMat.delete();
+        // maskWarpInvMat.delete();
+        // maskTmp.delete();
+        // maskedSrc.delete();
+        // maskedBook.delete();
+        // outTmp.delete();
+        // srcCopy.delete();
     }
+
+    imgWrite(dst, videoTargetCanvas);
+
     des1.delete();
     kp1.delete();
     matches.delete();
     tmpMat.delete();
     good.delete();
-
-    imgWrite(dst, videoTargetCanvas);
-
     src.delete();
     imgBuffer.delete();
     srcGray.delete();
