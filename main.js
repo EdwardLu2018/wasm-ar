@@ -208,8 +208,6 @@ const processVideo = async (captureFromVideo = true) => {
         let outTmp = new cv.Mat();
         cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
 
-        cv.imshow("canvasOutput", dst);
-
         H.delete();
         coords1Mat.delete();
         coords2Mat.delete();
@@ -224,9 +222,6 @@ const processVideo = async (captureFromVideo = true) => {
         maskedBook.delete();
         outTmp.delete();
         srcCopy.delete();
-    }
-    else {
-        cv.imshow("canvasOutput", src);
     }
     des1.delete();
     kp1.delete();
