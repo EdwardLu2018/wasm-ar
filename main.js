@@ -56,12 +56,10 @@ const orbDetect = (img) => {
     return [des, kps];
 };
 
-const processVideo = async (captureFromVideo = true) => {
+const processVideo = async() => {
     stats.begin();
-    if (captureFromVideo) {
-        videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
-    }
 
+    videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
     const src = readImFromCanv(videoTargetCanvas);
 
     let dst = src;
@@ -73,6 +71,7 @@ const processVideo = async (captureFromVideo = true) => {
     const matches = new cv.DMatchVector();
     const tmpMat = new cv.Mat();
     matcher.match(des1, des2, matches, tmpMat);
+    des1.delete();
 
     const good = findBestMatches(matches, 0.1);
     if (good.size() >= 20) {
@@ -91,6 +90,8 @@ const processVideo = async (captureFromVideo = true) => {
         const coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
 
         const H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
+        coords1Mat.delete();
+        coords2Mat.delete();
 
         const mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
         const maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
@@ -100,7 +101,6 @@ const processVideo = async (captureFromVideo = true) => {
             H,
             new cv.Size(width, height)
         );
-
         const arWarp = new cv.Mat(height, width, cv.CV_32FC1);
         cv.warpPerspective(
             arImg,
@@ -108,54 +108,49 @@ const processVideo = async (captureFromVideo = true) => {
             H,
             new cv.Size(width, height)
         );
+        H.delete();
+        mask.delete();
 
         const maskWarpInv = new cv.Mat();
         const maskTmp = new cv.Mat();
         const ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
         cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
         maskTmp.delete();
+        ones.delete();
 
         const maskWarpMat = create4ChanMat(maskWarp);
         const maskWarpInvMat = create4ChanMat(maskWarpInv);
+        maskWarp.delete();
+        maskWarpInv.delete();
 
         const maskedSrc = new cv.Mat();
         src.convertTo(src, cv.CV_32FC4, 1/255);
         cv.multiply(src, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
+        maskWarpInvMat.delete();
 
         const maskedBook = new cv.Mat();
         cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
+        arWarp.delete();
+        maskWarpMat.delete();
 
         const outTmp = new cv.Mat();
         cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
         outTmp.delete();
-
-        dst.convertTo(dst, cv.CV_8UC4, 255);
-
-        H.delete();
-        coords1Mat.delete();
-        coords2Mat.delete();
-        mask.delete();
-        maskWarp.delete();
-        arWarp.delete();
-        maskWarpInv.delete();
-        maskWarpMat.delete();
-        maskWarpInvMat.delete();
         maskedSrc.delete();
         maskedBook.delete();
+
+        dst.convertTo(dst, cv.CV_8UC4, 255);
     }
+
+    src.delete();
+    srcGray.delete();
+    kp1.delete();
+    matches.delete();
+    good.delete();
 
     writeImToCanv(dst, videoTargetCanvas);
 
-    des1.delete();
-    kp1.delete();
-    matches.delete();
-    tmpMat.delete();
-    good.delete();
-    src.delete();
-    srcGray.delete();
-
     stats.end();
-    return;
 };
 
 const initStats = async() => {
