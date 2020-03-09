@@ -1,5 +1,7 @@
-let stats = null;
+import { imgRead, imgWrite, create4ChanMat } from "./utils.js";
+import findBestMatches from "./findBestMatches.js";
 
+let stats = null;
 let orb = null;
 let matcher = null;
 let refImg = null;
@@ -41,7 +43,7 @@ const startCamera = async() => {
     });
 };
 
-const init = async() => {
+const initAR = async() => {
     orb = new cv.ORB(500);
     arImg = cv.imread("arImg");
     arImg.convertTo(arImg, cv.CV_32FC4, 1/255);
@@ -59,60 +61,6 @@ const orbDetect = (img) => {
     orb.detectAndCompute(img, tmpMat, kps, des);
     tmpMat.delete();
     return [des, kps];
-};
-
-const findBestMatches = (matches, ratio) => {
-    let bestMatches = new cv.DMatchVector();
-    for (let i = 0; i < matches.size(); i++) {
-        let m = matches.get(i);
-        if (m.distance < matches.size()*ratio) {
-            bestMatches.push_back(m);
-        }
-    }
-    return bestMatches;
-};
-
-const create4ChanMat = (mat) => {
-    if (mat.channels() == 4) return mat;
-
-    const width = mat.size().width, height = mat.size().height;
-    let result = new cv.Mat();
-    let vec = new cv.MatVector();
-
-    for (var i=0; i<3; i++)
-        vec.push_back(mat);
-    vec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
-    cv.merge(vec, result);
-
-    vec.delete();
-
-    return result;
-};
-
-const imWrite = (src, dstCanvas) => {
-    const tmp = new cv.Mat(src);
-    if (tmp.type() === cv.CV_8UC1) {
-        cv.cvtColor(tmp, tmp, cv.COLOR_GRAY2RGBA);
-    }
-    else if (tmp.type() === cv.CV_8UC3) {
-        cv.cvtColor(tmp, tmp, cv.COLOR_RGB2RGBA);
-    }
-    const imgData = new ImageData(
-        new Uint8ClampedArray(tmp.data),
-        tmp.cols,
-        tmp.rows
-    );
-    const ctx = dstCanvas.getContext("2d");
-    dstCanvas.width = tmp.cols;
-    dstCanvas.height = tmp.rows;
-    ctx.putImageData(imgData, 0, 0);
-    tmp.delete();
-};
-
-const imRead = (canvas)=> {
-    const ctx = canvas.getContext("2d");
-    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    return cv.matFromImageData(imgData)
 };
 
 const processVideo = async (captureFromVideo = true) => {
@@ -212,6 +160,7 @@ const processVideo = async (captureFromVideo = true) => {
     good.delete();
     src.delete();
     srcGray.delete();
+    dst.delete();
 
     stats.end();
     return;
@@ -224,7 +173,7 @@ const initStats = async() => {
 };
 
 cv["onRuntimeInitialized"] = async () => {
-    await init();
+    await initAR();
     await initStats();
     await startCamera();
     setInterval(processVideo, 100);
