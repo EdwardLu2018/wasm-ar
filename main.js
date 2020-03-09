@@ -1,6 +1,6 @@
 let streaming = false;
-let width = 0;
-let height = window.innerHeight;
+let width = window.innerWidth * 3 / 4;
+let height = 0;
 
 let video = document.getElementById("video");
 let stream = null;
@@ -41,7 +41,7 @@ function startCamera() {
 
     video.addEventListener("canplay", function(ev) {
         if (!streaming) {
-            width = video.videoWidth / (video.videoHeight/height);
+            height = video.videoHeight / (video.videoWidth/width);
             video.setAttribute("width", width);
             video.setAttribute("height", height);
             streaming = true;
@@ -83,7 +83,7 @@ function findBestMatches(matches, ratio) {
 function create4ChanMat(mat) {
     if (mat.channels() == 4) return mat;
 
-    let {width, height} = mat.size();
+    const width = mat.size().width, height = mat.size().height;
     let result = new cv.Mat();
     let vec = new cv.MatVector();
 
