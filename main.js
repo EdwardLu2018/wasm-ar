@@ -97,7 +97,6 @@ function findBestMatches(matches, ratio) {
 }
 
 function create4ChanMat(mat) {
-    console.log(mat)
     if (mat.channels() == 4) return mat;
 
     const width = mat.size().width, height = mat.size().height;
@@ -134,7 +133,7 @@ function processVideo() {
             let good = findBestMatches(matches, 0.1);
             // cv.drawMatches(srcGray, kp1, refImg, kp2, good, dst);
             // cv.drawKeypoints(refImg, kp2, dst);
-            if (good.size() >= 10) {
+            if (good.size() >= 20) {
                 const rows = good.size(), cols = 2;
                 let coords1 = []
                 let coords2 = []
@@ -169,7 +168,8 @@ function processVideo() {
                 );
 
                 let maskWarpInv = new cv.Mat();
-                cv.subtract(ones, maskWarp, maskWarpInv, new cv.Mat(), cv.CV_32FC1);
+                let maskTmp = new cv.Mat();
+                cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
 
                 let maskWarpMat = create4ChanMat(maskWarp);
                 let maskWarpInvMat = create4ChanMat(maskWarpInv);
@@ -181,7 +181,8 @@ function processVideo() {
                 let maskedBook = new cv.Mat();
                 cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
 
-                cv.add(maskedSrc, maskedBook, dst, new cv.Mat(), cv.CV_32FC1);
+                let outTmp = new cv.Mat();
+                cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
 
                 H.delete();
                 mask.delete();
@@ -190,8 +191,10 @@ function processVideo() {
                 maskWarpInv.delete();
                 maskWarpMat.delete();
                 maskWarpInvMat.delete();
+                maskTmp.delete();
                 maskedSrc.delete();
                 maskedBook.delete();
+                outTmp.delete();
             }
             des1.delete();
             kp1.delete();
