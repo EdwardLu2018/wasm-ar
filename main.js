@@ -83,11 +83,9 @@ function processVideo() {
             let src_gray = new cv.Mat();
             cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
-            let mat1 = new cv.Mat();
             let des1 = new cv.Mat();
             let kp1 = new cv.KeyPointVector();
-
-            orb.detectAndCompute(src_gray, mat1, kp1, des1);
+            orb.detectAndCompute(src_gray, new cv.Mat(), kp1, des1);
 
             let matches = new cv.DMatchVector();
             matcher.match(des1, des2, matches, new cv.Mat());
@@ -165,29 +163,28 @@ function processVideo() {
 
                 cv.add(masked_src, masked_book, dst, new cv.Mat(), cv.CV_32FC1);
 
-
+                H.delete();
+                mask.delete();
+                coords1_mat.delete();
+                coords2_mat.delete();
+                mask_warp.delete();
+                mask_warp_img.delete();
+                mask_warp_vec.delete();
+                ones.delete();
+                mask_warp_inv.delete();
+                mask_warp_inv_img.delete();
+                mask_warp_inv_vec.delete();
+                src_copy.delete();
+                masked_src.delete();
+                masked_book.delete();
             }
 
             cv.imshow("canvasOutput", dst);
-            mat1.delete();
+            new cv.Mat().delete();
             des1.delete();
             kp1.delete();
             matches.delete();
             good.delete();
-            coords1_mat.delete();
-            coords2_mat.delete();
-            H.delete();
-            mask.delete();
-            mask_warp.delete();
-            mask_warp_img.delete();
-            mask_warp_vec.delete();
-            ones.delete();
-            mask_warp_inv.delete();
-            mask_warp_inv_img.delete();
-            mask_warp_inv_vec.delete();
-            src_copy.delete();
-            masked_src.delete();
-            masked_book.delete();
         }
         else {
             dst = src.clone();
