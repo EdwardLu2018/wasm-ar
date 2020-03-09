@@ -165,25 +165,27 @@ function processVideo() {
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
                 cv.subtract(ones, maskWarp, maskWarpInv, new cv.Mat(), cv.CV_32FC1);
 
+                console.log("here")
                 let maskWarpMat = create4ChanMat(maskWarp);
                 let maskWarpInvMat = create4ChanMat(maskWarpInv);
+                console.log("here1")
 
-                let maskedSrc = new cv.Mat();
-                srcCopy.convertTo(srcCopy, cv.CV_32FC4, 1/255);
-                cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
+                // let maskedSrc = new cv.Mat();
+                // srcCopy.convertTo(srcCopy, cv.CV_32FC4, 1/255);
+                // cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
-                let maskedBook = new cv.Mat();
-                cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
+                // let maskedBook = new cv.Mat();
+                // cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
 
-                cv.add(maskedSrc, maskedBook, dst, new cv.Mat(), cv.CV_32FC1);
+                // cv.add(maskedSrc, maskedBook, dst, new cv.Mat(), cv.CV_32FC1);
 
-                H.delete();
-                mask.delete();
-                coords1Mat.delete();
-                coords2Mat.delete();
-                ones.delete();
-                maskedSrc.delete();
-                maskedBook.delete();
+                // H.delete();
+                // mask.delete();
+                // coords1Mat.delete();
+                // coords2Mat.delete();
+                // ones.delete();
+                // maskedSrc.delete();
+                // maskedBook.delete();
             }
             srcGray.delete();
             des1.delete();
@@ -194,7 +196,7 @@ function processVideo() {
 
         cv.imshow("canvasOutput", dst);
     }
-    catch(err) {
+    catch (err) {
         console.log(err.message);
     }
     stats.end();
