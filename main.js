@@ -116,25 +116,13 @@ const imgRead = (canvas)=> {
     return cv.matFromImageData(imgData)
 };
 
-const rescale = (src, targetWidth) => {
-    const dst = new cv.Mat();
-    const srcSize = src.size();
-    const dstSize = new cv.Size(
-        targetWidth,
-        (srcSize.height * targetWidth) / srcSize.width
-    );
-    cv.resize(src, dst, dstSize);
-    return dst;
-};
-
 const processVideo = async (captureFromVideo = true) => {
     stats.begin();
     if (captureFromVideo) {
         videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
     }
 
-    const imgBuffer = imgRead(videoTargetCanvas);
-    // const src = rescale(imgBuffer, 500);
+    const src = imgRead(videoTargetCanvas);
 
     let dst = new cv.Mat();
     let srcGray = new cv.Mat();
@@ -190,34 +178,34 @@ const processVideo = async (captureFromVideo = true) => {
         cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
         console.log("here")
 
-        // let maskWarpMat = create4ChanMat(maskWarp);
-        // let maskWarpInvMat = create4ChanMat(maskWarpInv);
+        let maskWarpMat = create4ChanMat(maskWarp);
+        let maskWarpInvMat = create4ChanMat(maskWarpInv);
 
-        // let maskedSrc = new cv.Mat();
-        // let srcCopy = new cv.Mat();
-        // src.convertTo(srcCopy, cv.CV_32FC4, 1/255);
-        // cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
+        let maskedSrc = new cv.Mat();
+        let srcCopy = new cv.Mat();
+        src.convertTo(srcCopy, cv.CV_32FC4, 1/255);
+        cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
-        // let maskedBook = new cv.Mat();
-        // cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
+        let maskedBook = new cv.Mat();
+        cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
 
-        // let outTmp = new cv.Mat();
-        // cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
+        let outTmp = new cv.Mat();
+        cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
 
-        // H.delete();
-        // coords1Mat.delete();
-        // coords2Mat.delete();
-        // mask.delete();
-        // maskWarp.delete();
-        // arWarp.delete();
-        // maskWarpInv.delete();
-        // maskWarpMat.delete();
-        // maskWarpInvMat.delete();
-        // maskTmp.delete();
-        // maskedSrc.delete();
-        // maskedBook.delete();
-        // outTmp.delete();
-        // srcCopy.delete();
+        H.delete();
+        coords1Mat.delete();
+        coords2Mat.delete();
+        mask.delete();
+        maskWarp.delete();
+        arWarp.delete();
+        maskWarpInv.delete();
+        maskWarpMat.delete();
+        maskWarpInvMat.delete();
+        maskTmp.delete();
+        maskedSrc.delete();
+        maskedBook.delete();
+        outTmp.delete();
+        srcCopy.delete();
     }
 
     imgWrite(dst, videoTargetCanvas);
