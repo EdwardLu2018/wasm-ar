@@ -187,6 +187,9 @@ function processVideo() {
                 mask.delete();
                 coords1Mat.delete();
                 coords2Mat.delete();
+                maskWarpInv.delete();
+                maskWarpMat.delete();
+                maskWarpInvMat.delete();
                 maskedSrc.delete();
                 maskedBook.delete();
             }
