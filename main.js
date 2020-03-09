@@ -79,7 +79,7 @@ function processVideo() {
     stats.begin();
     vc.read(src);
     try {
-        if (frames % 2 == 0) {
+        if (frames % 3 == 0) {
             let src_gray = new cv.Mat();
             cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
@@ -178,8 +178,6 @@ function processVideo() {
                 masked_src.delete();
                 masked_book.delete();
             }
-
-            cv.imshow("canvasOutput", dst);
             src_gray.delete();
             des1.delete();
             kp1.delete();
@@ -187,8 +185,10 @@ function processVideo() {
             good.delete();
         }
         else {
-            dst = src.clone();
+            dst = src;
         }
+
+        cv.imshow("canvasOutput", dst);
     }
     catch(err) {
         console.log(err.message);
