@@ -6,7 +6,6 @@ let refImg = null;
 let arImg = null;
 let des2 = null;
 let kp2 = null;
-let ones = null;
 
 let height = 0;
 let width = 0;
@@ -52,8 +51,6 @@ const init = async() => {
     [des2, kp2] = orbDetect(refImg);
 
     matcher = new cv.BFMatcher(cv.NORM_HAMMING);
-
-    ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
 };
 
 const orbDetect = (img) => {
@@ -154,43 +151,44 @@ const processVideo = async (captureFromVideo = true) => {
     let good = findBestMatches(matches, 0.1);
 
     if (good.size() >= 20) {
+        const rows = good.size(), cols = 2;
+        let coords1 = []
+        let coords2 = []
+        for (var i = 0; i < rows; i++) {
+            let m = good.get(i);
+            coords1.push(kp1.get(m.queryIdx).pt.x);
+            coords1.push(kp1.get(m.queryIdx).pt.y);
+            coords2.push(kp2.get(m.trainIdx).pt.x);
+            coords2.push(kp2.get(m.trainIdx).pt.y);
+        }
+
+        let coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
+        let coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
+
+        let H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
+
+        let mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
+        let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
+        cv.warpPerspective(
+            mask,
+            maskWarp,
+            H,
+            new cv.Size(width, height)
+        );
+
+        let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
+        cv.warpPerspective(
+            arImg,
+            arWarp,
+            H,
+            new cv.Size(width, height)
+        );
+
+        let maskWarpInv = new cv.Mat();
+        let maskTmp = new cv.Mat();
+        const ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
+        cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
         console.log("here")
-        // const rows = good.size(), cols = 2;
-        // let coords1 = []
-        // let coords2 = []
-        // for (var i = 0; i < rows; i++) {
-        //     let m = good.get(i);
-        //     coords1.push(kp1.get(m.queryIdx).pt.x);
-        //     coords1.push(kp1.get(m.queryIdx).pt.y);
-        //     coords2.push(kp2.get(m.trainIdx).pt.x);
-        //     coords2.push(kp2.get(m.trainIdx).pt.y);
-        // }
-
-        // let coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
-        // let coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
-
-        // let H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
-
-        // let mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
-        // let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
-        // cv.warpPerspective(
-        //     mask,
-        //     maskWarp,
-        //     H,
-        //     new cv.Size(width, height)
-        // );
-
-        // let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
-        // cv.warpPerspective(
-        //     arImg,
-        //     arWarp,
-        //     H,
-        //     new cv.Size(width, height)
-        // );
-
-        // let maskWarpInv = new cv.Mat();
-        // let maskTmp = new cv.Mat();
-        // cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
 
         // let maskWarpMat = create4ChanMat(maskWarp);
         // let maskWarpInvMat = create4ChanMat(maskWarpInv);
