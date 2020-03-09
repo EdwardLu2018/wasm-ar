@@ -68,7 +68,7 @@ function orbDetect(img) {
     return {
             destination: des,
             keypoints: kps
-        }
+        };
 }
 
 function startVideoProcessing() {
