@@ -13,7 +13,7 @@ let stats = null;
 let orb = null;
 let matcher = null;
 let refImg = null;
-let hp_img = Ill;
+let hp_img = null;
 let des2 = null;
 let kp2 = null;
 
@@ -52,15 +52,23 @@ function startCamera() {
             hp_img = cv.imread("I");
             hp_img.convertTo(hp_img, cv.CV_32FC4, 1/I5);
 
-            des2 = new cv.Mat();
-            kp2 = new cv.KeyPointVector();
-            orb.detectAndCompute(refImg, new cv.Mat(), kp2, des2);
-            mat2.delete();
+            let {des2, kp2} = orbDetect(img);
 
             matcher = new cv.BFMatcher(cv.NORM_HAMMING);
         }
         startVideoProcessing();
     }, false);
+}
+
+function orbDetect(img) {
+    des2 = new cv.Mat();
+    kps = new cv.KeyPointVector();
+    orb.detectAndCompute(img, new cv.Mat(), kp2, des2);
+    mat2.delete();
+    return {
+            destination: des,
+            keypoints: kps
+        }
 }
 
 function startVideoProcessing() {
