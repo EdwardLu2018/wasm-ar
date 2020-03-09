@@ -16,6 +16,7 @@ let refImg = null;
 let arImg = null;
 let des2 = null;
 let kp2 = null;
+let ones = null;
 
 var frames = 0;
 
@@ -55,6 +56,8 @@ function startCamera() {
             [des2, kp2] = orbDetect(refImg);
 
             matcher = new cv.BFMatcher(cv.NORM_HAMMING);
+
+            ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
         }
         startVideoProcessing();
     }, false);
@@ -104,16 +107,6 @@ function create4ChanMat(mat) {
     cv.merge(vec, result);
 
     vec.delete();
-
-    return result;
-}
-
-function invertMat(mat) {
-    const width = mat.size().width, height = mat.size().height;
-
-    let result = new cv.Mat();
-    let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
-    cv.subtract(ones, mat, result, new cv.Mat(), cv.CV_32FC1);
 
     return result;
 }
@@ -173,7 +166,9 @@ function processVideo() {
                     new cv.Size(width, height)
                 );
 
-                let maskWarpInv = invertMat(maskWarp);
+                let maskWarpInv = new cv.Mat();
+                cv.subtract(ones, maskWarp, maskWarpInv, new cv.Mat(), cv.CV_32FC1);
+
                 let maskWarpMat = create4ChanMat(maskWarp);
                 let maskWarpInvMat = create4ChanMat(maskWarpInv);
 
@@ -190,7 +185,6 @@ function processVideo() {
                 mask.delete();
                 coords1Mat.delete();
                 coords2Mat.delete();
-                ones.delete();
                 maskedSrc.delete();
                 maskedBook.delete();
             }
