@@ -61,8 +61,8 @@ function startCamera() {
 }
 
 function orbDetect(img) {
-    des2 = new cv.Mat();
-    kps = new cv.KeyPointVector();
+    var des = new cv.Mat();
+    var kps = new cv.KeyPointVector();
     orb.detectAndCompute(img, new cv.Mat(), kp2, des2);
     mat2.delete();
     return {
