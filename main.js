@@ -182,8 +182,7 @@ const processVideo = async (captureFromVideo = true) => {
         let maskWarpInvMat = create4ChanMat(maskWarpInv);
 
         let maskedSrc = new cv.Mat();
-        let srcCopy = new cv.Mat();
-        src.convertTo(srcCopy, cv.CV_32FC4, 1/255);
+        src.convertTo(src, cv.CV_32FC4, 1/255);
         cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
         let maskedBook = new cv.Mat();
@@ -191,6 +190,8 @@ const processVideo = async (captureFromVideo = true) => {
 
         let outTmp = new cv.Mat();
         cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
+
+        dst.convertTo(dst, cv.CV_8UC4);
 
         H.delete();
         coords1Mat.delete();
@@ -205,7 +206,6 @@ const processVideo = async (captureFromVideo = true) => {
         maskedSrc.delete();
         maskedBook.delete();
         outTmp.delete();
-        srcCopy.delete();
     }
 
     imgWrite(dst, videoTargetCanvas);
