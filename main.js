@@ -151,10 +151,13 @@ function processVideo() {
                 mask_warp_vec.push_back(new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]))
                 cv.merge(mask_warp_vec, mask_warp_img);
 
-                src.convertTo(src, cv.CV_32FC4, 1/255);
-                console.log(src_gray.charAt(70,80))
+                let src_copy = src.clone()
+                src_copy.convertTo(src_copy, cv.CV_32FC4, 1/255);
 
-                cv.multiply(src, mask_warp_img, dst, 1, cv.CV_32FC1);
+                let masked_book = new cv.Mat();
+                cv.multiply(src_copy, mask_warp_img, masked_book, 1, cv.CV_32FC1);
+
+                cv.add(masked_book, hp_warp, dst, new cv.Mat(), cv.CV_32FC1)
             }
 
             cv.imshow("canvasOutput", dst);
