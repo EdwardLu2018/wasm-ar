@@ -120,8 +120,6 @@ function processVideo() {
     try {
         cv.cvtColor(src, srcGray, cv.COLOR_RGBA2GRAY);
 
-        dst = src;
-
         let [des1, kp1] = orbDetect(srcGray);
 
         let matches = new cv.DMatchVector();
@@ -183,6 +181,8 @@ function processVideo() {
             let outTmp = new cv.Mat();
             cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
 
+            cv.imshow("canvasOutput", dst);
+
             H.delete();
             coords1Mat.delete();
             coords2Mat.delete();
@@ -198,13 +198,15 @@ function processVideo() {
             outTmp.delete();
             srcCopy.delete();
         }
+        else {
+            cv.imshow("canvasOutput", src);
+        }
         des1.delete();
         kp1.delete();
         matches.delete();
         tmpMat.delete();
         good.delete();
 
-        cv.imshow("canvasOutput", dst);
     }
     catch (err) {
         console.log(err.message);
