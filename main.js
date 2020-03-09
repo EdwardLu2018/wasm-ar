@@ -13,7 +13,7 @@ let stats = null;
 let orb = null;
 let matcher = null;
 let refImg = null;
-let hp_img = null;
+let arImg = null;
 let des2 = null;
 let kp2 = null;
 
@@ -48,11 +48,11 @@ function startCamera() {
             vc = new cv.VideoCapture(video);
 
             orb = new cv.ORB(500);
-            refImg = cv.imread("ref");
-            hp_img = cv.imread("I");
-            hp_img.convertTo(hp_img, cv.CV_32FC4, 1/I5);
+            refImg = cv.imread("ref_img");
+            arImg = cv.imread("ar_img");
+            arImg.convertTo(arImg, cv.CV_32FC4, 1/I5);
 
-            {des2, kp2} = orbDetect(hp_img);
+            [des2, kp2] = orbDetect(arImg);
 
             matcher = new cv.BFMatcher(cv.NORM_HAMMING);
         }
@@ -65,10 +65,7 @@ function orbDetect(img) {
     var kps = new cv.KeyPointVector();
     orb.detectAndCompute(img, new cv.Mat(), kp2, des2);
     mat2.delete();
-    return {
-            destination: des,
-            keypoints: kps
-        };
+    return [des, kps]
 }
 
 function startVideoProcessing() {
@@ -94,7 +91,7 @@ function processVideo() {
             dst = srcCopy;
             srcCopy.convertTo(srcCopy, cv.CV_32FC4, 1/255);
 
-            let {des1, kp1} = orbDetect(srcGray);
+            let [des1, kp1] = orbDetect(srcGray);
 
             let matches = new cv.DMatchVector();
             matcher.match(des1, des2, matches, new cv.Mat());
@@ -141,10 +138,10 @@ function processVideo() {
                 let ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
                 cv.subtract(ones, maskWarp, maskWarpInv, new cv.Mat(), cv.CV_32FC1);
 
-                let hpWarp = new cv.Mat(height, width, cv.CV_32FC1);
+                let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
                 cv.warpPerspective(
-                    hpImg,
-                    hpWarp,
+                    arImg,
+                    arWarp,
                     H,
                     new cv.Size(width, height)
                 );
@@ -165,7 +162,7 @@ function processVideo() {
                 cv.multiply(srcCopy, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
                 let maskedBook = new cv.Mat();
-                cv.multiply(hpWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
+                cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
 
                 cv.add(maskedSrc, maskedBook, dst, new cv.Mat(), cv.CV_32FC1);
 
