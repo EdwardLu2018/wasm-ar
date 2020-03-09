@@ -50,7 +50,7 @@ function startCamera() {
             orb = new cv.ORB(500);
             refImg = cv.imread("ref_img");
             arImg = cv.imread("ar_img");
-            arImg.convertTo(arImg, cv.CV_32FC4, 1/I5);
+            arImg.convertTo(arImg, cv.CV_32FC4, 1/255);
 
             [des2, kp2] = orbDetect(arImg);
 
@@ -66,6 +66,17 @@ function orbDetect(img) {
     orb.detectAndCompute(img, new cv.Mat(), kp2, des2);
     mat2.delete();
     return [des, kps]
+}
+
+function findBestMatches(matches, ratio) {
+    let bestMatches = new cv.DMatchVector();
+    for (let i = 0; i < matches.size(); i++) {
+        let m = matches.get(i);
+        if (m.distance < matches.size()*ratio) {
+            bestMatches.push_back(m);
+        }
+    }
+    return bestMatches;
 }
 
 function startVideoProcessing() {
@@ -96,13 +107,7 @@ function processVideo() {
             let matches = new cv.DMatchVector();
             matcher.match(des1, des2, matches, new cv.Mat());
 
-            let good = new cv.DMatchVector();
-            for (let i = 0; i < matches.size(); i++) {
-                let m = matches.get(i);
-                if (m.distance < matches.size()*0.1) {
-                    good.push_back(m);
-                }
-            }
+            let good = findBestMatches(0.1, matches);
 
             // cv.drawMatches(srcGray, kp1, refImg, kp2, good, dst);
             // cv.drawKeypoints(refImg, kp2, dst);
