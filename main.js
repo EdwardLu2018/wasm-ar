@@ -193,7 +193,6 @@ function processVideo() {
                 maskedSrc.delete();
                 maskedBook.delete();
             }
-            srcGray.delete();
             des1.delete();
             kp1.delete();
             matches.delete();
@@ -217,13 +216,13 @@ function stopVideoProcessing() {
     if (dst != null && !dst.isDeleted()) dst.delete();
 }
 
-function main() {
-    initStats();
-    startCamera();
-}
-
 function initStats() {
     stats = new Stats();
     stats.showPanel(0);
     document.getElementById('stats').appendChild(stats.domElement);
+}
+
+function main() {
+    initStats();
+    startCamera();
 }
