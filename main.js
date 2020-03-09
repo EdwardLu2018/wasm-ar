@@ -90,7 +90,7 @@ const create4ChanMat = (mat) => {
     return result;
 };
 
-const imgWrite = (src, dstCanvas) => {
+const imWrite = (src, dstCanvas) => {
     const tmp = new cv.Mat(src);
     if (tmp.type() === cv.CV_8UC1) {
         cv.cvtColor(tmp, tmp, cv.COLOR_GRAY2RGBA);
@@ -110,7 +110,7 @@ const imgWrite = (src, dstCanvas) => {
     tmp.delete();
 };
 
-const imgRead = (canvas)=> {
+const imRead = (canvas)=> {
     const ctx = canvas.getContext("2d");
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     return cv.matFromImageData(imgData)
@@ -122,24 +122,23 @@ const processVideo = async (captureFromVideo = true) => {
         videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
     }
 
-    const src = imgRead(videoTargetCanvas);
+    const src = imRead(videoTargetCanvas);
 
     let dst = src;
-    let srcGray = new cv.Mat();
+    const srcGray = new cv.Mat();
     cv.cvtColor(src, srcGray, cv.COLOR_RGBA2GRAY);
 
-    let [des1, kp1] = orbDetect(srcGray);
+    const [des1, kp1] = orbDetect(srcGray);
 
-    let matches = new cv.DMatchVector();
-    let tmpMat = new cv.Mat();
+    const matches = new cv.DMatchVector();
+    const tmpMat = new cv.Mat();
     matcher.match(des1, des2, matches, tmpMat);
 
-    let good = findBestMatches(matches, 0.1);
-
+    const good = findBestMatches(matches, 0.1);
     if (good.size() >= 20) {
         const rows = good.size(), cols = 2;
-        let coords1 = []
-        let coords2 = []
+        const coords1 = []
+        const coords2 = []
         for (var i = 0; i < rows; i++) {
             let m = good.get(i);
             coords1.push(kp1.get(m.queryIdx).pt.x);
@@ -148,13 +147,13 @@ const processVideo = async (captureFromVideo = true) => {
             coords2.push(kp2.get(m.trainIdx).pt.y);
         }
 
-        let coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
-        let coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
+        const coords1Mat = cv.matFromArray(coords1.length/2, cols, cv.CV_32F, coords1);
+        const coords2Mat = cv.matFromArray(coords2.length/2, cols, cv.CV_32F, coords2);
 
-        let H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
+        const H = cv.findHomography(coords2Mat, coords1Mat, cv.RANSAC);
 
-        let mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
-        let maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
+        const mask = new cv.Mat(refImg.rows, refImg.cols, cv.CV_32FC1, [1,1,1,1]);
+        const maskWarp = new cv.Mat(height, width, cv.CV_32FC1);
         cv.warpPerspective(
             mask,
             maskWarp,
@@ -162,7 +161,7 @@ const processVideo = async (captureFromVideo = true) => {
             new cv.Size(width, height)
         );
 
-        let arWarp = new cv.Mat(height, width, cv.CV_32FC1);
+        const arWarp = new cv.Mat(height, width, cv.CV_32FC1);
         cv.warpPerspective(
             arImg,
             arWarp,
@@ -170,43 +169,43 @@ const processVideo = async (captureFromVideo = true) => {
             new cv.Size(width, height)
         );
 
-        let maskWarpInv = new cv.Mat();
-        let maskTmp = new cv.Mat();
+        const maskWarpInv = new cv.Mat();
+        const maskTmp = new cv.Mat();
         const ones = new cv.Mat(height, width, cv.CV_32FC1, [1,1,1,1]);
         cv.subtract(ones, maskWarp, maskWarpInv, maskTmp, cv.CV_32FC1);
         console.log("here")
 
-        let maskWarpMat = create4ChanMat(maskWarp);
-        let maskWarpInvMat = create4ChanMat(maskWarpInv);
+        const maskWarpMat = create4ChanMat(maskWarp);
+        const maskWarpInvMat = create4ChanMat(maskWarpInv);
 
-        let maskedSrc = new cv.Mat();
+        const maskedSrc = new cv.Mat();
         src.convertTo(src, cv.CV_32FC4, 1/255);
         cv.multiply(src, maskWarpInvMat, maskedSrc, 1, cv.CV_32FC4);
 
-        let maskedBook = new cv.Mat();
+        const maskedBook = new cv.Mat();
         cv.multiply(arWarp, maskWarpMat, maskedBook, 1, cv.CV_32FC4);
 
-        let outTmp = new cv.Mat();
+        const outTmp = new cv.Mat();
         cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
 
         dst.convertTo(dst, cv.CV_8UC4, 255);
 
-        // H.delete();
-        // coords1Mat.delete();
-        // coords2Mat.delete();
-        // mask.delete();
-        // maskWarp.delete();
-        // arWarp.delete();
-        // maskWarpInv.delete();
-        // maskWarpMat.delete();
-        // maskWarpInvMat.delete();
-        // maskTmp.delete();
-        // maskedSrc.delete();
-        // maskedBook.delete();
-        // outTmp.delete();
+        H.delete();
+        coords1Mat.delete();
+        coords2Mat.delete();
+        mask.delete();
+        maskWarp.delete();
+        arWarp.delete();
+        maskWarpInv.delete();
+        maskWarpMat.delete();
+        maskWarpInvMat.delete();
+        maskTmp.delete();
+        maskedSrc.delete();
+        maskedBook.delete();
+        outTmp.delete();
     }
 
-    imgWrite(dst, videoTargetCanvas);
+    imWrite(dst, videoTargetCanvas);
 
     des1.delete();
     kp1.delete();
