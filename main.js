@@ -160,7 +160,6 @@ const processVideo = async (captureFromVideo = true) => {
     good.delete();
     src.delete();
     srcGray.delete();
-    dst.delete();
 
     stats.end();
     return;
