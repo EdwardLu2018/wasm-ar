@@ -134,7 +134,7 @@ const processVideo = async (captureFromVideo = true) => {
     }
 
     const imgBuffer = imgRead(videoTargetCanvas);
-    const src = rescale(imgBuffer, 500);
+    // const src = rescale(imgBuffer, 500);
 
     let dst = new cv.Mat();
     let srcGray = new cv.Mat();
@@ -228,7 +228,6 @@ const processVideo = async (captureFromVideo = true) => {
     tmpMat.delete();
     good.delete();
     src.delete();
-    imgBuffer.delete();
     srcGray.delete();
 
     frames += 1;
