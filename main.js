@@ -185,9 +185,11 @@ function processVideo() {
                 cv.add(maskedSrc, maskedBook, dst, outTmp, cv.CV_32FC1);
 
                 H.delete();
-                mask.delete();
                 coords1Mat.delete();
                 coords2Mat.delete();
+                mask.delete();
+                maskWarp.delete();
+                arWarp.delete();
                 maskWarpInv.delete();
                 maskWarpMat.delete();
                 maskWarpInvMat.delete();
