@@ -1,4 +1,4 @@
-const imWrite = (src, dstCanvas) => {
+const writeImToCanv = (src, dstCanvas) => {
     const tmpMat = new cv.Mat(src);
     if (tmpMat.type() === cv.CV_8UC1) {
         cv.cvtColor(tmpMat, tmpMat, cv.COLOR_GRAY2RGBA);
@@ -18,7 +18,7 @@ const imWrite = (src, dstCanvas) => {
     tmpMat.delete();
 };
 
-const imRead = (canvas) => {
+const readImFromCanv = (canvas) => {
     const ctx = canvas.getContext("2d");
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     return cv.matFromImageData(imgData)
@@ -41,4 +41,4 @@ const create4ChanMat = (mat) => {
     return result;
 };
 
-export { imgRead, imgWrite, create4ChanMat };
+export { readImFromCanv, writeImToCanv, create4ChanMat };

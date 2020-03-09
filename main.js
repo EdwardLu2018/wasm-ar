@@ -1,4 +1,4 @@
-import { imgRead, imgWrite, create4ChanMat } from "./utils.js";
+import {readImFromCanv, writeImToCanv, create4ChanMat} from "./utils.js";
 import findBestMatches from "./findBestMatches.js";
 
 let stats = null;
@@ -69,7 +69,7 @@ const processVideo = async (captureFromVideo = true) => {
         videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
     }
 
-    const src = imRead(videoTargetCanvas);
+    const src = readImFromCanv(videoTargetCanvas);
 
     let dst = src;
     const srcGray = new cv.Mat();
