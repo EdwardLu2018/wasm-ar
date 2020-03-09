@@ -140,11 +140,10 @@ const processVideo = async (captureFromVideo = true) => {
     // videoTargetCanvas.style.display = "block";
 
     const imgBuffer = imgRead(videoTargetCanvas);
-    const src = rescale(imgBuffer);
+    const src = rescale(imgBuffer, 500);
 
-    let srcGray = new cv.Mat();
     let dst = new cv.Mat();
-
+    let srcGray = new cv.Mat();
     cv.cvtColor(src, srcGray, cv.COLOR_RGBA2GRAY);
 
     dst = srcGray;
