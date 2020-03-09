@@ -1,5 +1,5 @@
 let streaming = false;
-let width = window.innerWidth / 2;
+let width = window.innerWidth * 3 / 4;
 let height = 0;
 
 let video = document.getElementById("video");
@@ -79,7 +79,7 @@ function processVideo() {
     stats.begin();
     vc.read(src);
     try {
-        if (frames % 5 == 0) {
+        if (frames % 2 == 0) {
             let src_gray = new cv.Mat();
             cv.cvtColor(src, src_gray, cv.COLOR_RGBA2GRAY);
 
@@ -180,7 +180,7 @@ function processVideo() {
             }
 
             cv.imshow("canvasOutput", dst);
-            new cv.Mat().delete();
+            src_gray.delete();
             des1.delete();
             kp1.delete();
             matches.delete();
@@ -205,6 +205,6 @@ function stopVideoProcessing() {
 function main() {
     stats = new Stats();
     stats.showPanel(0);
-    document.getElementById('container').appendChild(stats.domElement);
+    document.getElementById('stats').appendChild(stats.domElement);
     startCamera();
 }
