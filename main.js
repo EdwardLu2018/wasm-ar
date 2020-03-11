@@ -3,7 +3,7 @@ const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 
 let stats = null;
 const GOOD_MATCH_PERCENT = 0.1;
-const GOOD_MATCH_THRESHOLD = 55;
+const GOOD_MATCH_THRESHOLD = 50;
 
 var Module = {
     onRuntimeInitialized:() => init(Module)
