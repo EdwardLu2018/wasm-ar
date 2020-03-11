@@ -1,7 +1,7 @@
-set(CMAKE_C_COMPILER "/Users/Edward/Desktop/wasm/emsdk/upstream/emscripten/emcc")
+set(CMAKE_C_COMPILER "/Users/Edward/Documents/GitHub/wasm-ar/emsdk/upstream/emscripten/emcc")
 set(CMAKE_C_COMPILER_ARG1 "")
 set(CMAKE_C_COMPILER_ID "Clang")
-set(CMAKE_C_COMPILER_VERSION "10.0.0")
+set(CMAKE_C_COMPILER_VERSION "11.0.0")
 set(CMAKE_C_COMPILER_VERSION_INTERNAL "")
 set(CMAKE_C_COMPILER_WRAPPER "")
 set(CMAKE_C_STANDARD_COMPUTED_DEFAULT "11")
@@ -17,9 +17,9 @@ set(CMAKE_C_SIMULATE_VERSION "")
 
 
 
-set(CMAKE_AR "/Users/Edward/Desktop/wasm/emsdk/upstream/emscripten/emar")
+set(CMAKE_AR "/Users/Edward/Documents/GitHub/wasm-ar/emsdk/upstream/emscripten/emar")
 set(CMAKE_C_COMPILER_AR "/usr/local/opt/llvm/bin/llvm-ar")
-set(CMAKE_RANLIB "/Users/Edward/Desktop/wasm/emsdk/upstream/emscripten/emranlib")
+set(CMAKE_RANLIB "/Users/Edward/Documents/GitHub/wasm-ar/emsdk/upstream/emscripten/emranlib")
 set(CMAKE_C_COMPILER_RANLIB "/usr/local/opt/llvm/bin/llvm-ranlib")
 set(CMAKE_LINKER "/usr/bin/ld")
 set(CMAKE_MT "")

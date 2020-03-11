@@ -1,3 +1,3 @@
 # wasm-ar
 
-![demo](./demo.gif)
+![demo](./demos/demo.gif)

@@ -1,3 +1,3 @@
-/Users/Edward/Desktop/wasm/emscript-opencv/build/CMakeFiles/rebuild_cache.dir
-/Users/Edward/Desktop/wasm/emscript-opencv/build/CMakeFiles/edit_cache.dir
-/Users/Edward/Desktop/wasm/emscript-opencv/build/CMakeFiles/homography.dir
+/Users/Edward/Documents/GitHub/wasm-ar/build/CMakeFiles/rebuild_cache.dir
+/Users/Edward/Documents/GitHub/wasm-ar/build/CMakeFiles/edit_cache.dir
+/Users/Edward/Documents/GitHub/wasm-ar/build/CMakeFiles/homography.dir

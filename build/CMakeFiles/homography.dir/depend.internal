@@ -146,4 +146,4 @@ CMakeFiles/homography.dir/homography.cpp.o
  ../opencv_contrib/modules/viz/include/opencv2/viz/widgets.hpp
  ../opencv_contrib/modules/xfeatures2d/include/opencv2/xfeatures2d.hpp
  ../opencv_contrib/modules/xfeatures2d/include/opencv2/xfeatures2d/nonfree.hpp
- /Users/Edward/Desktop/wasm/emscript-opencv/homography.cpp
+ /Users/Edward/Documents/GitHub/wasm-ar/homography.cpp
