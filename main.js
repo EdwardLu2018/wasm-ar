@@ -2,7 +2,7 @@ const videoElement = document.getElementById("videoElement");
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 
 let stats = null;
-const GOOD_MATCH_THRESHOLD = 50;
+const GOOD_MATCH_THRESHOLD = 55;
 
 var Module = {
     onRuntimeInitialized:() => init(Module)
