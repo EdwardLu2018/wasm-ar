@@ -12,14 +12,12 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 
 const int MAX_FEATURES = 500;
-const float GOOD_MATCH_PERCENT = 0.1f;
-const int GOOD_MATCH_THRESHOLD = 55;
 
 emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t srcRows,
                      const int & refAddr, const size_t refCols, const size_t refRows,
-                     const int & arAddr, const size_t arCols, const size_t arRows)
+                     const int & arAddr, const size_t arCols, const size_t arRows,
+                     const size_t GOOD_MATCH_PERCENT, const size_t GOOD_MATCH_THRESHOLD)
 {
-
     uint8_t *srcData = reinterpret_cast<uint8_t *>(srcAddr);
     uint8_t *refData = reinterpret_cast<uint8_t *>(refAddr);
     uint8_t *arData = reinterpret_cast<uint8_t *>(arAddr);
