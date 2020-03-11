@@ -2,7 +2,7 @@ const videoElement = document.getElementById("videoElement");
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 
 let stats = null;
-const GOOD_MATCH_THRESHOLD = 55;
+const GOOD_MATCH_THRESHOLD = 50;
 
 var Module = {
     onRuntimeInitialized:() => init(Module)
@@ -38,7 +38,6 @@ const startCamera = async () => {
     .catch(function(err) {
         console.log("An error occured! " + err);
     });
-
     startVideoProcessing();
 };
 
