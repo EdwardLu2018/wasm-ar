@@ -13,7 +13,7 @@ using namespace cv::xfeatures2d;
 
 const int MAX_FEATURES = 500;
 const float GOOD_MATCH_PERCENT = 0.1f;
-const int GOOD_MATCH_THRESHOLD = 55;
+const int GOOD_MATCH_THRESHOLD = 50;
 
 emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t srcRows,
                      const int & refAddr, const size_t refCols, const size_t refRows,
