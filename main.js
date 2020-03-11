@@ -2,7 +2,6 @@ const videoElement = document.getElementById("videoElement");
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 
 let stats = null;
-const GOOD_MATCH_PERCENT = 0.1;
 const GOOD_MATCH_THRESHOLD = 50;
 
 var Module = {
@@ -93,7 +92,7 @@ const processVideo = () => {
     var homoIm = window.Module.homo(frame_uint8_ptr, videoTargetCanvas.width, videoTargetCanvas.height,
                                     ref_uint8_ptr, refImg.width, refImg.height,
                                     ar_uint8_ptr, arImg.width, arImg.height,
-                                    GOOD_MATCH_PERCENT, GOOD_MATCH_THRESHOLD);
+                                    GOOD_MATCH_THRESHOLD);
     var homoImClamped = new Uint8ClampedArray(homoIm); // clamps homoIm to 0-255
 
     imLoad(videoTargetCanvas, homoImClamped);
