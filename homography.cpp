@@ -15,7 +15,7 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 
 const int MAX_FEATURES = 500;
-const float GOOD_MATCH_PERCENT = 0.15f;
+const float GOOD_MATCH_PERCENT = 0.1f;
 
 emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t srcRows,
                      const int & refAddr, const size_t refCols, const size_t refRows,
@@ -46,8 +46,9 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
     refGray.release();
 
     vector<DMatch> matches;
-    BFMatcher desc_matcher(cv::NORM_L2, true);
-    desc_matcher.match(descr1, descr2, matches, Mat());
+    Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
+    matcher->match(descr1, descr2, matches, Mat());
+    matcher.release();
     descr1.release();
     descr2.release();
 
