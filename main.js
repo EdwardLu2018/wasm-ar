@@ -4,6 +4,9 @@ const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 let stats = null;
 const GOOD_MATCH_THRESHOLD = 50;
 
+const ref_uint8_ptr = null;
+const ar_uint8_ptr = null;
+
 var Module = {
     onRuntimeInitialized:() => init(Module)
 };
@@ -34,7 +37,6 @@ const startCamera = async () => {
         videoTargetCanvas.height = height;
         videoElement.srcObject = stream;
         videoElement.play();
-        window.Module.initAR();
     })
     .catch(function(err) {
         console.log("An error occured! " + err);
@@ -43,6 +45,7 @@ const startCamera = async () => {
 };
 
 const startVideoProcessing = () => {
+    initAR();
     requestAnimationFrame(processVideo);
 }
 
@@ -71,6 +74,20 @@ const imLoad = (cvs, uint8Arr) => {
     ctx.putImageData(imData, 0, 0, 0, 0, cvs.width, cvs.height);
 };
 
+const initAR = () => {
+    window.Module.initAR();
+
+    const refImg = document.getElementById("refImg");
+    const ref_uint_array = imRead(refImg);
+    ref_uint8_ptr = window.Module._malloc(ref_uint_array.length);
+    window.Module.HEAPU8.set(ref_uint_array, ref_uint8_ptr);
+
+    const arImg = document.getElementById("arImg");
+    const ar_uint_array = imRead(arImg);
+    ar_uint8_ptr = window.Module._malloc(ar_uint_array.length);
+    window.Module.HEAPU8.set(ar_uint_array, ar_uint8_ptr);
+};
+
 const processVideo = () => {
     stats.begin();
 
@@ -78,16 +95,6 @@ const processVideo = () => {
     const frame_uint_array = imRead(videoTargetCanvas);
     const frame_uint8_ptr = window.Module._malloc(frame_uint_array.length);
     window.Module.HEAPU8.set(frame_uint_array, frame_uint8_ptr);
-
-    const refImg = document.getElementById("refImg");
-    const ref_uint_array = imRead(refImg);
-    const ref_uint8_ptr = window.Module._malloc(ref_uint_array.length);
-    window.Module.HEAPU8.set(ref_uint_array, ref_uint8_ptr);
-
-    const arImg = document.getElementById("arImg");
-    const ar_uint_array = imRead(arImg);
-    const ar_uint8_ptr = window.Module._malloc(ar_uint_array.length);
-    window.Module.HEAPU8.set(ar_uint_array, ar_uint8_ptr);
 
     var homoIm = window.Module.homo(frame_uint8_ptr, videoTargetCanvas.width, videoTargetCanvas.height,
                                     ref_uint8_ptr, refImg.width, refImg.height,
@@ -98,8 +105,6 @@ const processVideo = () => {
     imLoad(videoTargetCanvas, homoImClamped);
 
     window.Module._free(frame_uint_array);
-    window.Module._free(ref_uint_array);
-    window.Module._free(ar_uint_array);
 
     stats.end();
     requestAnimationFrame(processVideo);
