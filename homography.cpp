@@ -1,10 +1,13 @@
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
 #include <opencv2/core.hpp>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/core/ocl.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/xfeatures2d.hpp>
 #include <opencv2/features2d.hpp>
+#include <opencv2/xfeatures2d.hpp>
+#include <opencv2/xfeatures2d/nonfree.hpp>
 
 using namespace std;
 using namespace emscripten;
@@ -12,7 +15,7 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 
 const int MAX_FEATURES = 500;
-const float GOOD_MATCH_PERCENT = 0.1f;
+const float GOOD_MATCH_PERCENT = 0.5f;
 
 emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t srcRows,
                      const int & refAddr, const size_t refCols, const size_t refRows,
@@ -33,31 +36,30 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
     cv::cvtColor(src, srcGray, cv::COLOR_BGR2GRAY);
     cv::cvtColor(ref, refGray, cv::COLOR_BGR2GRAY);
 
-    std::vector<KeyPoint> kps1, kps2;
+    vector<KeyPoint> kps1, kps2;
 
     Mat descr1, descr2;
-    Ptr<ORB> orb = ORB::create(MAX_FEATURES);
-    orb->detectAndCompute(srcGray, Mat(), kps1, descr1);
-    orb->detectAndCompute(refGray, Mat(), kps2, descr2);
+    Ptr<Feature2D> sift = SIFT::create(MAX_FEATURES);
+    sift->detectAndCompute(srcGray, Mat(), kps1, descr1);
+    sift->detectAndCompute(refGray, Mat(), kps2, descr2);
     srcGray.release();
     refGray.release();
 
-    std::vector<DMatch> matches;
-    Ptr<DescriptorMatcher> matcher = DescriptorMatcher::create("BruteForce-Hamming");
-    matcher->match(descr1, descr2, matches, Mat());
-    matcher.release();
+    vector<DMatch> matches;
+    BFMatcher desc_matcher(cv::NORM_L2, true);
+    desc_matcher.match(descr1, descr2, matches, Mat());
     descr1.release();
     descr2.release();
 
-    std::sort(matches.begin(), matches.end());
+    sort(matches.begin(), matches.end());
     const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
     matches.erase(matches.begin()+numGoodMatches, matches.end());
 
     // Mat imMatches;
-    // drawMatches(src, kps1, ref, kps2, matches, imMatches);
+    // drawMatches(src, kps1, ref, kps2, matches, dst);
 
     if (matches.size() >= GOOD_MATCH_THRESHOLD) {
-        std::vector<Point2f> points1, points2;
+        vector<Point2f> points1, points2;
         for( size_t i = 0; i < matches.size(); i++ ) {
             points1.push_back( kps1[matches[i].queryIdx].pt );
             points2.push_back( kps2[matches[i].trainIdx].pt );

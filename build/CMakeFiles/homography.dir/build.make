@@ -80,6 +80,7 @@ homography_EXTERNAL_OBJECTS =
 
 homography.js: CMakeFiles/homography.dir/homography.cpp.o
 homography.js: CMakeFiles/homography.dir/build.make
+homography.js: ../opencv/build_wasm/lib/libopencv_aruco.a
 homography.js: ../opencv/build_wasm/lib/libopencv_calib3d.a
 homography.js: ../opencv/build_wasm/lib/libopencv_core.a
 homography.js: ../opencv/build_wasm/lib/libopencv_dnn.a
@@ -89,6 +90,7 @@ homography.js: ../opencv/build_wasm/lib/libopencv_imgproc.a
 homography.js: ../opencv/build_wasm/lib/libopencv_objdetect.a
 homography.js: ../opencv/build_wasm/lib/libopencv_photo.a
 homography.js: ../opencv/build_wasm/lib/libopencv_video.a
+homography.js: ../opencv/build_wasm/lib/libopencv_xfeatures2d.a
 homography.js: CMakeFiles/homography.dir/linklibs.rsp
 homography.js: CMakeFiles/homography.dir/objects1.rsp
 homography.js: CMakeFiles/homography.dir/link.txt

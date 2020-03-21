@@ -29,6 +29,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "../opencv/modules/video/include"
   "../opencv/modules/videoio/include"
   "../opencv/modules/world/include"
+  "../opencv_contrib/modules/alphamat/include"
   "../opencv_contrib/modules/aruco/include"
   "../opencv_contrib/modules/bgsegm/include"
   "../opencv_contrib/modules/bioinspired/include"
