@@ -34,6 +34,7 @@ const startCamera = async () => {
         videoTargetCanvas.height = height;
         videoElement.srcObject = stream;
         videoElement.play();
+        window.Module.initAR();
     })
     .catch(function(err) {
         console.log("An error occured! " + err);
