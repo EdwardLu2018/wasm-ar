@@ -4,8 +4,8 @@ const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 let stats = null;
 const GOOD_MATCH_THRESHOLD = 50;
 
-const ref_uint8_ptr = null;
-const ar_uint8_ptr = null;
+let ref_uint8_ptr = null;
+let ar_uint8_ptr = null;
 
 var Module = {
     onRuntimeInitialized:() => init(Module)
