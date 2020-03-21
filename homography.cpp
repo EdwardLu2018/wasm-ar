@@ -15,7 +15,7 @@ using namespace cv;
 using namespace cv::xfeatures2d;
 
 const int MAX_FEATURES = 500;
-const float GOOD_MATCH_PERCENT = 0.5f;
+const float GOOD_MATCH_PERCENT = 0.15f;
 
 emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t srcRows,
                      const int & refAddr, const size_t refCols, const size_t refRows,
@@ -39,9 +39,9 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
     vector<KeyPoint> kps1, kps2;
 
     Mat descr1, descr2;
-    Ptr<Feature2D> sift = SIFT::create(MAX_FEATURES);
-    sift->detectAndCompute(srcGray, Mat(), kps1, descr1);
-    sift->detectAndCompute(refGray, Mat(), kps2, descr2);
+    Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
+    orb->detectAndCompute(srcGray, Mat(), kps1, descr1);
+    orb->detectAndCompute(refGray, Mat(), kps2, descr2);
     srcGray.release();
     refGray.release();
 
