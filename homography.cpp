@@ -2,9 +2,9 @@
 #include <emscripten/val.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include "opencv2/calib3d/calib3d.hpp"
-#include "opencv2/xfeatures2d.hpp"
-#include "opencv2/features2d.hpp"
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/xfeatures2d.hpp>
+#include <opencv2/features2d.hpp>
 
 using namespace std;
 using namespace emscripten;
@@ -36,7 +36,7 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
     std::vector<KeyPoint> kps1, kps2;
 
     Mat descr1, descr2;
-    Ptr<Feature2D> orb = ORB::create(MAX_FEATURES);
+    Ptr<ORB> orb = ORB::create(MAX_FEATURES);
     orb->detectAndCompute(srcGray, Mat(), kps1, descr1);
     orb->detectAndCompute(refGray, Mat(), kps2, descr2);
     srcGray.release();

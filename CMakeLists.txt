@@ -28,5 +28,4 @@ file( GLOB opencv_js "opencv/build_wasm/lib/*.a" )
 target_link_libraries( homography ${opencv_js} )
 
 # Specify linker arguments
-# set_target_properties( hello PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 --preload-file assets --bind" )
 set_target_properties( homography PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -Oz -O3 -s WASM_OBJECT_FILES=0 --llvm-lto 1 --closure 1 -s WASM=1 -s USE_ZLIB=1 --bind" )
