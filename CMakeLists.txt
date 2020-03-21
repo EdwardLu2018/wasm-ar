@@ -9,9 +9,6 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif(NOT CMAKE_BUILD_TYPE)
 
-# Does not work
-# find_package( OpenCV REQUIRED PATHS opencv/build_wasm NO_DEFAULT_PATH)
-
 # Needed for opencv2/opencv.hpp
 include_directories( opencv/include )
 
