@@ -4,9 +4,6 @@ const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 let stats = null;
 const GOOD_MATCH_THRESHOLD = 50;
 
-let ref_uint8_ptr = null;
-let ar_uint8_ptr = null;
-
 var Module = {
     onRuntimeInitialized:() => init(Module)
 };
@@ -75,17 +72,18 @@ const imLoad = (cvs, uint8Arr) => {
 };
 
 const initAR = () => {
-    window.Module.initAR();
-
     const refImg = document.getElementById("refImg");
     const ref_uint_array = imRead(refImg);
-    ref_uint8_ptr = window.Module._malloc(ref_uint_array.length);
+    const ref_uint8_ptr = window.Module._malloc(ref_uint_array.length);
     window.Module.HEAPU8.set(ref_uint_array, ref_uint8_ptr);
 
     const arImg = document.getElementById("arImg");
     const ar_uint_array = imRead(arImg);
-    ar_uint8_ptr = window.Module._malloc(ar_uint_array.length);
+    const ar_uint8_ptr = window.Module._malloc(ar_uint_array.length);
     window.Module.HEAPU8.set(ar_uint_array, ar_uint8_ptr);
+
+    window.Module.initAR(ar_uint8_ptr, arImg.width, arImg.height,
+                         ref_uint8_ptr, refImg.width, refImg.height);
 };
 
 const processVideo = () => {
@@ -97,8 +95,6 @@ const processVideo = () => {
     window.Module.HEAPU8.set(frame_uint_array, frame_uint8_ptr);
 
     var homoIm = window.Module.homo(frame_uint8_ptr, videoTargetCanvas.width, videoTargetCanvas.height,
-                                    ref_uint8_ptr, refImg.width, refImg.height,
-                                    ar_uint8_ptr, arImg.width, arImg.height,
                                     GOOD_MATCH_THRESHOLD);
     var homoImClamped = new Uint8ClampedArray(homoIm); // clamps homoIm to 0-255
 

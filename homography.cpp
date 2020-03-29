@@ -1,5 +1,6 @@
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
+
 #include <opencv2/core.hpp>
 #include <opencv2/core/utility.hpp>
 #include <opencv2/core/ocl.hpp>
@@ -20,50 +21,56 @@ const float GOOD_MATCH_PERCENT = 0.1f;
 Ptr<ORB> orb = NULL;
 Ptr<BFMatcher> desc_matcher = NULL;
 
-void initAR() {
+Mat ar, refGray, mask, descr2;
+
+vector<KeyPoint> kps2;
+
+void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
+            const int & refAddr, const size_t refCols, const size_t refRows) {
     orb = ORB::create(MAX_FEATURES);
     desc_matcher = BFMatcher::create();
+
+    uint8_t *arData = reinterpret_cast<uint8_t *>(arAddr);
+    uint8_t *refData = reinterpret_cast<uint8_t *>(refAddr);
+
+    ar = Mat(arRows, arCols, CV_8UC4, arData);
+    Mat refIm(refRows, refCols, CV_8UC4, refData);
+
+    mask = Mat::ones(ar.rows, ar.cols, CV_32FC1);
+
+    cv::cvtColor(refIm, refGray, cv::COLOR_BGR2GRAY);
+
+    orb->detectAndCompute(refGray, Mat(), kps2, descr2);
 }
 
 emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t srcRows,
-                     const int & refAddr, const size_t refCols, const size_t refRows,
-                     const int & arAddr, const size_t arCols, const size_t arRows,
                      const size_t GOOD_MATCH_THRESHOLD)
 {
     uint8_t *srcData = reinterpret_cast<uint8_t *>(srcAddr);
-    uint8_t *refData = reinterpret_cast<uint8_t *>(refAddr);
-    uint8_t *arData = reinterpret_cast<uint8_t *>(arAddr);
 
     Mat src (srcRows, srcCols, CV_8UC4, srcData);
-    Mat ref (refRows, refCols, CV_8UC4, refData);
-    Mat ar (arRows, arCols, CV_8UC4, arData);
-
     Mat dst = src;
 
-    Mat srcGray, refGray;
+    Mat srcGray;
     cv::cvtColor(src, srcGray, cv::COLOR_BGR2GRAY);
-    cv::cvtColor(ref, refGray, cv::COLOR_BGR2GRAY);
 
-    vector<KeyPoint> kps1, kps2;
+    vector<KeyPoint> kps1;
 
     if (orb != NULL && desc_matcher != NULL) {
-        Mat descr1, descr2;
+        Mat descr1;
         orb->detectAndCompute(srcGray, Mat(), kps1, descr1);
-        orb->detectAndCompute(refGray, Mat(), kps2, descr2);
         srcGray.release();
-        refGray.release();
 
         vector<DMatch> matches;
         desc_matcher->match(descr1, descr2, matches, Mat());
         descr1.release();
-        descr2.release();
 
         sort(matches.begin(), matches.end());
         const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
         matches.erase(matches.begin()+numGoodMatches, matches.end());
 
         // Mat imMatches;
-        // drawMatches(src, kps1, ref, kps2, matches, dst);
+        // drawMatches(src, kps1, refIm, kps2, matches, dst);
 
         if (matches.size() >= GOOD_MATCH_THRESHOLD) {
             vector<Point2f> points1, points2;
@@ -77,12 +84,10 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
             Mat arWarp;
             warpPerspective(ar, arWarp, h, src.size());
 
-            Mat mask = Mat::ones(ar.rows, ar.cols, CV_32FC1);
             Mat maskWarp;
             warpPerspective(mask, maskWarp, h, src.size());
 
             h.release();
-            mask.release();
 
             Mat ones = Mat::ones(src.rows, src.cols, CV_32FC1);
             Mat maskWarpInv;
