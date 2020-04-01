@@ -21,9 +21,9 @@ const float GOOD_MATCH_PERCENT = 0.1f;
 Ptr<ORB> orb = NULL;
 Ptr<BFMatcher> desc_matcher = NULL;
 
-Mat ar, refGray, mask, descr2;
+Mat ar, refGray, dst, mask, descr2;
 
-vector<KeyPoint> kps2;
+vector<KeyPoint> kps1, kps2;
 
 void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
             const int & refAddr, const size_t refCols, const size_t refRows) {
@@ -49,12 +49,10 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
     uint8_t *srcData = reinterpret_cast<uint8_t *>(srcAddr);
 
     Mat src (srcRows, srcCols, CV_8UC4, srcData);
-    Mat dst = src;
+    dst = src;
 
     Mat srcGray;
     cv::cvtColor(src, srcGray, cv::COLOR_BGR2GRAY);
-
-    vector<KeyPoint> kps1;
 
     if (orb != NULL && desc_matcher != NULL) {
         Mat descr1;
@@ -74,7 +72,8 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
 
         if (matches.size() >= GOOD_MATCH_THRESHOLD) {
             vector<Point2f> points1, points2;
-            for( size_t i = 0; i < matches.size(); i++ ) {
+            size_t i = 0;
+            for(; i < matches.size(); i++) {
                 points1.push_back( kps1[matches[i].queryIdx].pt );
                 points2.push_back( kps2[matches[i].trainIdx].pt );
             }
@@ -126,6 +125,6 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
 }
 
 EMSCRIPTEN_BINDINGS(my_module) {
-    emscripten::function("initAR", &initAR);
+    emscripten::function("initAR", &initAR, allow_raw_pointers());
     emscripten::function("homo", &homo, allow_raw_pointers());
 }
