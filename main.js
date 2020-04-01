@@ -100,7 +100,7 @@ const processVideo = () => {
 
     imLoad(videoTargetCanvas, homoImClamped);
 
-    window.Module._free(frame_uint_array);
+    window.Module._free(frame_uint8_ptr);
 
     stats.end();
     requestAnimationFrame(processVideo);
