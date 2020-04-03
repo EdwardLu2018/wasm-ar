@@ -15,10 +15,9 @@ using namespace emscripten;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
-const int MAX_FEATURES = 500;
 const float GOOD_MATCH_PERCENT = 0.1f;
 
-Ptr<ORB> orb = NULL;
+Ptr<BRISK> brisk = NULL;
 Ptr<BFMatcher> desc_matcher = NULL;
 
 Mat ar, refGray, dst, mask, descr2;
@@ -27,7 +26,7 @@ vector<KeyPoint> kps1, kps2;
 
 void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
             const int & refAddr, const size_t refCols, const size_t refRows) {
-    orb = ORB::create(MAX_FEATURES);
+    brisk = BRISK::create();
     desc_matcher = BFMatcher::create();
 
     uint8_t *arData = reinterpret_cast<uint8_t *>(arAddr);
@@ -40,7 +39,7 @@ void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
 
     cv::cvtColor(refIm, refGray, cv::COLOR_BGR2GRAY);
 
-    orb->detectAndCompute(refGray, Mat(), kps2, descr2);
+    brisk->detectAndCompute(refGray, Mat(), kps2, descr2);
 }
 
 emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t srcRows,
@@ -54,9 +53,9 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
     Mat srcGray;
     cv::cvtColor(src, srcGray, cv::COLOR_BGR2GRAY);
 
-    if (orb != NULL && desc_matcher != NULL) {
+    if (brisk != NULL && desc_matcher != NULL) {
         Mat descr1;
-        orb->detectAndCompute(srcGray, Mat(), kps1, descr1);
+        brisk->detectAndCompute(srcGray, Mat(), kps1, descr1);
         srcGray.release();
 
         vector<DMatch> matches;
