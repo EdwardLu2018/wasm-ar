@@ -1,2 +1,4 @@
 .DS_Store
-*/CMakeFiles
+build/*
+!build/*.js
+!build/*.wasm
