@@ -37,7 +37,7 @@ void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
 
     mask = Mat::ones(ar.rows, ar.cols, CV_32FC1);
 
-    cv::cvtColor(refIm, refGray, cv::COLOR_BGR2GRAY);
+    cvtColor(refIm, refGray, cv::COLOR_BGR2GRAY);
 
     brisk->detectAndCompute(refGray, Mat(), kps2, descr2);
 }
@@ -77,7 +77,7 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
                 points2.push_back( kps2[matches[i].trainIdx].pt );
             }
 
-            Mat h = findHomography(points2, points1, RANSAC);
+            Mat h = findHomography(points2, points1, FM_RANSAC);
 
             Mat arWarp;
             warpPerspective(ar, arWarp, h, src.size());
@@ -90,22 +90,21 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
             Mat ones = Mat::ones(src.rows, src.cols, CV_32FC1);
             Mat maskWarpInv;
             subtract(ones, maskWarp, maskWarpInv, Mat(), CV_32FC1);
-            ones.release();
 
             Mat maskWarpMat;
-            Mat maskWarpVec[] = {maskWarp, maskWarp, maskWarp,  Mat::ones(src.rows, src.cols, CV_32FC1)};
+            Mat maskWarpVec[] = {maskWarp, maskWarp, maskWarp, ones};
             merge(maskWarpVec, 4, maskWarpMat);
             maskWarp.release();
 
             Mat maskWarpInvMat;
-            Mat maskWarpInvVec[] = {maskWarpInv, maskWarpInv, maskWarpInv,  Mat::ones(src.rows, src.cols, CV_32FC1)};
+            Mat maskWarpInvVec[] = {maskWarpInv, maskWarpInv, maskWarpInv, ones};
             merge(maskWarpInvVec, 4, maskWarpInvMat);
             maskWarpInv.release();
 
-            Mat maskedSrc;
-            multiply(src, maskWarpInvMat, maskedSrc, 1, CV_8UC4);
+            ones.release();
 
-            Mat maskedBook;
+            Mat maskedSrc, maskedBook;
+            multiply(src, maskWarpInvMat, maskedSrc, 1, CV_8UC4);
             multiply(arWarp, maskWarpMat, maskedBook, 1, CV_8UC4);
 
             arWarp.release();

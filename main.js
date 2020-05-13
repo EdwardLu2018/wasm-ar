@@ -2,7 +2,26 @@ const videoElement = document.getElementById("videoElement");
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 
 let stats = null;
-const GOOD_MATCH_THRESHOLD = 50;
+const GOOD_MATCH_THRESHOLD = 60;
+
+const imRead = (im) => {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = im.width;
+    canvas.height = im.height;
+
+    ctx.drawImage(im, 0, 0);
+    return ctx.getImageData(0, 0, im.width, im.height).data;
+};
+
+const imLoad = (cvs, uint8Arr) => {
+    let ctx = cvs.getContext('2d');
+
+    var imData = ctx.createImageData(cvs.width, cvs.height);
+    imData.data.set(uint8Arr);
+
+    ctx.putImageData(imData, 0, 0, 0, 0, cvs.width, cvs.height);
+};
 
 var Module = {
     onRuntimeInitialized:() => init(Module)
@@ -50,25 +69,6 @@ const initStats = async () => {
     stats = new Stats();
     stats.showPanel(0);
     document.getElementById("stats").appendChild(stats.domElement);
-};
-
-const imRead = (im) => {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-    canvas.width = im.width;
-    canvas.height = im.height;
-
-    ctx.drawImage(im, 0, 0);
-    return ctx.getImageData(0, 0, im.width, im.height).data;
-};
-
-const imLoad = (cvs, uint8Arr) => {
-    let ctx = cvs.getContext('2d');
-
-    var imData = ctx.createImageData(cvs.width, cvs.height);
-    imData.data.set(uint8Arr);
-
-    ctx.putImageData(imData, 0, 0, 0, 0, cvs.width, cvs.height);
 };
 
 const initAR = () => {
