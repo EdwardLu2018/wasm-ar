@@ -1,6 +1,5 @@
 const videoElement = document.getElementById("videoElement");
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
-const videoTargetCtx = videoTargetCanvas.getContext("2d");
 
 let stats = null;
 const GOOD_MATCH_THRESHOLD = 60;
@@ -8,6 +7,8 @@ const GOOD_MATCH_THRESHOLD = 60;
 let frame_uint_array = null;
 let frame_uint8_ptr = null;
 let arResult = null;
+
+var frames = 0;
 
 const imRead = (im) => {
     var canvas = document.createElement('canvas');
@@ -94,21 +95,24 @@ const initAR = () => {
 const processVideo = () => {
     stats.begin();
 
-    videoTargetCtx.drawImage(videoElement, 0, 0);
-    frame_uint_array = imRead(videoTargetCanvas);
-    frame_uint8_ptr = window.Module._malloc(frame_uint_array.length);
-    window.Module.HEAPU8.set(frame_uint_array, frame_uint8_ptr);
+    if (frames % 3 == 0) {
+        videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
+        frame_uint_array = imRead(videoTargetCanvas);
+        frame_uint8_ptr = window.Module._malloc(frame_uint_array.length);
+        window.Module.HEAPU8.set(frame_uint_array, frame_uint8_ptr);
 
-    arResult = window.Module.performAR(
-        frame_uint8_ptr,
-        videoTargetCanvas.width, videoTargetCanvas.height,
-        GOOD_MATCH_THRESHOLD
-    );
+        arResult = window.Module.performAR(
+            frame_uint8_ptr,
+            videoTargetCanvas.width, videoTargetCanvas.height,
+            GOOD_MATCH_THRESHOLD
+        );
 
-    imLoad(videoTargetCanvas, arResult);
+        imLoad(videoTargetCanvas, arResult);
 
-    window.Module._free(frame_uint8_ptr);
+        window.Module._free(frame_uint8_ptr);
+    }
 
+    frames++;
     stats.end();
     requestAnimationFrame(processVideo);
 };

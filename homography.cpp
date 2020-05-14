@@ -39,7 +39,7 @@ void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
 
     cvtColor(refIm, refGray, cv::COLOR_BGR2GRAY);
 
-    brisk->detectAndCompute(refGray, Mat(), kps2, descr2);
+    brisk->detectAndCompute(refGray, noArray(), kps2, descr2);
 }
 
 emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_t srcRows,
@@ -55,11 +55,11 @@ emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_
 
     if (brisk != NULL && desc_matcher != NULL) {
         Mat descr1;
-        brisk->detectAndCompute(srcGray, Mat(), kps1, descr1);
+        brisk->detectAndCompute(srcGray, noArray(), kps1, descr1);
         srcGray.release();
 
         vector<DMatch> matches;
-        desc_matcher->match(descr1, descr2, matches, Mat());
+        desc_matcher->match(descr1, descr2, matches, noArray());
         descr1.release();
 
         sort(matches.begin(), matches.end());
@@ -89,7 +89,7 @@ emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_
 
             Mat ones = Mat::ones(src.rows, src.cols, CV_32FC1);
             Mat maskWarpInv;
-            subtract(ones, maskWarp, maskWarpInv, Mat(), CV_32FC1);
+            subtract(ones, maskWarp, maskWarpInv, noArray(), CV_32FC1);
 
             Mat maskWarpMat;
             Mat maskWarpVec[] = {maskWarp, maskWarp, maskWarp, ones};
@@ -111,7 +111,7 @@ emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_
             maskWarpMat.release();
             maskWarpInvMat.release();
 
-            add(maskedSrc, maskedBook, dst, Mat(), CV_8UC1);
+            add(maskedSrc, maskedBook, dst, noArray(), CV_8UC1);
 
             maskedSrc.release();
             maskedBook.release();
