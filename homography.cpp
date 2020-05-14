@@ -42,7 +42,7 @@ void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
     brisk->detectAndCompute(refGray, Mat(), kps2, descr2);
 }
 
-emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t srcRows,
+emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_t srcRows,
                      const size_t GOOD_MATCH_THRESHOLD)
 {
     uint8_t *srcData = reinterpret_cast<uint8_t *>(srcAddr);
@@ -124,5 +124,5 @@ emscripten::val homo(const int & srcAddr, const size_t srcCols, const size_t src
 
 EMSCRIPTEN_BINDINGS(my_module) {
     emscripten::function("initAR", &initAR, allow_raw_pointers());
-    emscripten::function("homo", &homo, allow_raw_pointers());
+    emscripten::function("performAR", &performAR, allow_raw_pointers());
 }

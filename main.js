@@ -1,8 +1,13 @@
 const videoElement = document.getElementById("videoElement");
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
+const videoTargetCtx = videoTargetCanvas.getContext("2d");
 
 let stats = null;
 const GOOD_MATCH_THRESHOLD = 60;
+
+let frame_uint_array = null;
+let frame_uint8_ptr = null;
+let arResult = null;
 
 const imRead = (im) => {
     var canvas = document.createElement('canvas');
@@ -89,16 +94,18 @@ const initAR = () => {
 const processVideo = () => {
     stats.begin();
 
-    videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
-    const frame_uint_array = imRead(videoTargetCanvas);
-    const frame_uint8_ptr = window.Module._malloc(frame_uint_array.length);
+    videoTargetCtx.drawImage(videoElement, 0, 0);
+    frame_uint_array = imRead(videoTargetCanvas);
+    frame_uint8_ptr = window.Module._malloc(frame_uint_array.length);
     window.Module.HEAPU8.set(frame_uint_array, frame_uint8_ptr);
 
-    var homoIm = window.Module.homo(frame_uint8_ptr, videoTargetCanvas.width, videoTargetCanvas.height,
-                                    GOOD_MATCH_THRESHOLD);
-    var homoImClamped = new Uint8ClampedArray(homoIm); // clamps homoIm to 0-255
+    arResult = window.Module.performAR(
+        frame_uint8_ptr,
+        videoTargetCanvas.width, videoTargetCanvas.height,
+        GOOD_MATCH_THRESHOLD
+    );
 
-    imLoad(videoTargetCanvas, homoImClamped);
+    imLoad(videoTargetCanvas, arResult);
 
     window.Module._free(frame_uint8_ptr);
 
