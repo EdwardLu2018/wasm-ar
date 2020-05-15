@@ -15,9 +15,10 @@ using namespace emscripten;
 using namespace cv;
 using namespace cv::xfeatures2d;
 
-const float GOOD_MATCH_PERCENT = 0.1f;
+const float GOOD_MATCH_PERCENT = 0.7f;
+const int MAX_FEATURE_POINTS = 1000;
 
-Ptr<BRISK> brisk = NULL;
+Ptr<ORB> orb = NULL;
 Ptr<BFMatcher> desc_matcher = NULL;
 
 Mat ar, refGray, dst, mask, descr2;
@@ -26,7 +27,7 @@ vector<KeyPoint> kps1, kps2;
 
 void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
             const int & refAddr, const size_t refCols, const size_t refRows) {
-    brisk = BRISK::create();
+    orb = ORB::create(MAX_FEATURE_POINTS);
     desc_matcher = BFMatcher::create();
 
     uint8_t *arData = reinterpret_cast<uint8_t *>(arAddr);
@@ -39,45 +40,38 @@ void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
 
     cvtColor(refIm, refGray, cv::COLOR_BGR2GRAY);
 
-    brisk->detectAndCompute(refGray, noArray(), kps2, descr2);
+    orb->detectAndCompute(refGray, noArray(), kps2, descr2);
 }
 
-emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_t srcRows,
-                     const size_t GOOD_MATCH_THRESHOLD)
-{
+emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_t srcRows) {
     uint8_t *srcData = reinterpret_cast<uint8_t *>(srcAddr);
 
     Mat src (srcRows, srcCols, CV_8UC4, srcData);
     dst = src;
 
     Mat srcGray;
-    cv::cvtColor(src, srcGray, cv::COLOR_BGR2GRAY);
+    cvtColor(src, srcGray, cv::COLOR_BGR2GRAY);
 
-    if (brisk != NULL && desc_matcher != NULL) {
+    if (orb != NULL && desc_matcher != NULL) {
         Mat descr1;
-        brisk->detectAndCompute(srcGray, noArray(), kps1, descr1);
+        orb->detectAndCompute(srcGray, noArray(), kps1, descr1);
         srcGray.release();
 
-        vector<DMatch> matches;
-        desc_matcher->match(descr1, descr2, matches, noArray());
+        vector<vector<DMatch>> knn_matches;
+        desc_matcher->knnMatch(descr1, descr2, knn_matches, 2);
         descr1.release();
 
-        sort(matches.begin(), matches.end());
-        const int numGoodMatches = matches.size() * GOOD_MATCH_PERCENT;
-        matches.erase(matches.begin()+numGoodMatches, matches.end());
-
-        // Mat imMatches;
-        // drawMatches(src, kps1, refIm, kps2, matches, dst);
-
-        if (matches.size() >= GOOD_MATCH_THRESHOLD) {
-            vector<Point2f> points1, points2;
-            size_t i = 0;
-            for(; i < matches.size(); i++) {
-                points1.push_back( kps1[matches[i].queryIdx].pt );
-                points2.push_back( kps2[matches[i].trainIdx].pt );
+        vector<Point2f> dst_pts, src_pts;
+        for (size_t i = 0; i < knn_matches.size(); ++i) {
+            if (knn_matches[i][0].distance < GOOD_MATCH_PERCENT * knn_matches[i][1].distance) {
+                dst_pts.push_back( kps1[knn_matches[i][0].queryIdx].pt );
+                src_pts.push_back( kps2[knn_matches[i][0].trainIdx].pt );
             }
+        }
 
-            Mat h = findHomography(points2, points1, FM_RANSAC);
+        // need 4 pts to define homography, rounded up to 10
+        if (dst_pts.size() > 10) {
+            Mat h = findHomography(src_pts, dst_pts, FM_RANSAC);
 
             Mat arWarp;
             warpPerspective(ar, arWarp, h, src.size());

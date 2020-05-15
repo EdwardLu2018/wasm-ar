@@ -2,8 +2,6 @@ const videoElement = document.getElementById("videoElement");
 const videoTargetCanvas = document.getElementById("videoTargetCanvas");
 
 let stats = null;
-const GOOD_MATCH_THRESHOLD = 60;
-
 let frame_uint_array = null;
 let frame_uint8_ptr = null;
 let arResult = null;
@@ -103,8 +101,7 @@ const processVideo = () => {
 
         arResult = window.Module.performAR(
             frame_uint8_ptr,
-            videoTargetCanvas.width, videoTargetCanvas.height,
-            GOOD_MATCH_THRESHOLD
+            videoTargetCanvas.width, videoTargetCanvas.height
         );
 
         imLoad(videoTargetCanvas, arResult);
@@ -113,6 +110,8 @@ const processVideo = () => {
     }
 
     frames++;
+
     stats.end();
+
     requestAnimationFrame(processVideo);
 };
