@@ -8,6 +8,11 @@ let arResult = null;
 
 var frames = 0;
 
+// window.onload = function() {
+//     videoElement.setAttribute("width", window.innerWidth);
+//     videoElement.setAttribute("height", window.innerHeight);
+// }
+
 const imRead = (im) => {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
@@ -51,10 +56,8 @@ const startCamera = async () => {
     })
     .then(stream => {
         const videoSettings = stream.getVideoTracks()[0].getSettings();
-        height = videoSettings.height;
-        width = videoSettings.width;
-        videoTargetCanvas.width = width;
-        videoTargetCanvas.height = height;
+        videoTargetCanvas.width = videoSettings.width;
+        videoTargetCanvas.height = videoSettings.height;
         videoElement.srcObject = stream;
         videoElement.play();
     })
@@ -93,7 +96,7 @@ const initAR = () => {
 const processVideo = () => {
     stats.begin();
 
-    if (frames % 3 == 0) {
+    if (frames % 2 == 0) {
         videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
         frame_uint_array = imRead(videoTargetCanvas);
         frame_uint8_ptr = window.Module._malloc(frame_uint_array.length);

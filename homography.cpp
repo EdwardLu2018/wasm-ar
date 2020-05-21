@@ -21,6 +21,8 @@ const int MAX_FEATURE_POINTS = 1000;
 Ptr<ORB> orb = NULL;
 Ptr<BFMatcher> desc_matcher = NULL;
 
+bool initialized = false;
+
 Mat ar, refGray, dst, mask, descr2;
 
 vector<KeyPoint> kps1, kps2;
@@ -36,11 +38,13 @@ void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
     ar = Mat(arRows, arCols, CV_8UC4, arData);
     Mat refIm(refRows, refCols, CV_8UC4, refData);
 
-    mask = Mat::ones(ar.rows, ar.cols, CV_32FC1);
+    mask = Mat::ones(ar.rows, ar.cols, CV_8UC1);
 
     cvtColor(refIm, refGray, cv::COLOR_BGR2GRAY);
 
     orb->detectAndCompute(refGray, noArray(), kps2, descr2);
+
+    initialized = true;
 }
 
 emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_t srcRows) {
@@ -52,7 +56,7 @@ emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_
     Mat srcGray;
     cvtColor(src, srcGray, cv::COLOR_BGR2GRAY);
 
-    if (orb != NULL && desc_matcher != NULL) {
+    if (initialized) {
         Mat descr1;
         orb->detectAndCompute(srcGray, noArray(), kps1, descr1);
         srcGray.release();
@@ -71,44 +75,32 @@ emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_
 
         // need 4 pts to define homography, rounded up to 10
         if (dst_pts.size() > 10) {
-            Mat h = findHomography(src_pts, dst_pts, FM_RANSAC);
+            Mat H = findHomography(src_pts, dst_pts, RANSAC);
 
             Mat arWarp;
-            warpPerspective(ar, arWarp, h, src.size());
+            warpPerspective(ar, arWarp, H, src.size());
 
             Mat maskWarp;
-            warpPerspective(mask, maskWarp, h, src.size());
+            warpPerspective(mask, maskWarp, H, src.size());
 
-            h.release();
+            H.release();
 
-            Mat ones = Mat::ones(src.rows, src.cols, CV_32FC1);
-            Mat maskWarpInv;
-            subtract(ones, maskWarp, maskWarpInv, noArray(), CV_32FC1);
+            Mat maskWarpInv = 1 - maskWarp;
 
-            Mat maskWarpMat;
-            Mat maskWarpVec[] = {maskWarp, maskWarp, maskWarp, ones};
-            merge(maskWarpVec, 4, maskWarpMat);
-            maskWarp.release();
+            Mat maskedSrc = Mat::zeros(src.size(), src.type());
+            Mat maskedAr = Mat::zeros(arWarp.size(), arWarp.type());
 
-            Mat maskWarpInvMat;
-            Mat maskWarpInvVec[] = {maskWarpInv, maskWarpInv, maskWarpInv, ones};
-            merge(maskWarpInvVec, 4, maskWarpInvMat);
-            maskWarpInv.release();
-
-            ones.release();
-
-            Mat maskedSrc, maskedBook;
-            multiply(src, maskWarpInvMat, maskedSrc, 1, CV_8UC4);
-            multiply(arWarp, maskWarpMat, maskedBook, 1, CV_8UC4);
+            src.copyTo(maskedSrc, maskWarpInv);
+            arWarp.copyTo(maskedAr, maskWarp);
 
             arWarp.release();
-            maskWarpMat.release();
-            maskWarpInvMat.release();
+            maskWarp.release();
+            maskWarpInv.release();
 
-            add(maskedSrc, maskedBook, dst, noArray(), CV_8UC1);
+            add(maskedSrc, maskedAr, dst, noArray(), CV_8UC1);
 
             maskedSrc.release();
-            maskedBook.release();
+            maskedAr.release();
         }
     }
 
@@ -116,7 +108,7 @@ emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_
     return result;
 }
 
-EMSCRIPTEN_BINDINGS(my_module) {
+EMSCRIPTEN_BINDINGS(module) {
     emscripten::function("initAR", &initAR, allow_raw_pointers());
     emscripten::function("performAR", &performAR, allow_raw_pointers());
 }
