@@ -6,12 +6,7 @@ let frame_uint_array = null;
 let frame_uint8_ptr = null;
 let arResult = null;
 
-var frames = 0;
-
-// window.onload = function() {
-//     videoElement.setAttribute("width", window.innerWidth);
-//     videoElement.setAttribute("height", window.innerHeight);
-// }
+// var frames = 0;
 
 const imRead = (im) => {
     var canvas = document.createElement('canvas');
@@ -96,7 +91,7 @@ const initAR = () => {
 const processVideo = () => {
     stats.begin();
 
-    if (frames % 2 == 0) {
+    // if (frames % 2 == 0) {
         videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
         frame_uint_array = imRead(videoTargetCanvas);
         frame_uint8_ptr = window.Module._malloc(frame_uint_array.length);
@@ -104,15 +99,16 @@ const processVideo = () => {
 
         arResult = window.Module.performAR(
             frame_uint8_ptr,
-            videoTargetCanvas.width, videoTargetCanvas.height
+            videoTargetCanvas.width,
+            videoTargetCanvas.height
         );
 
         imLoad(videoTargetCanvas, arResult);
 
         window.Module._free(frame_uint8_ptr);
-    }
+    // }
 
-    frames++;
+    // frames++;
 
     stats.end();
 

@@ -27,8 +27,8 @@ Mat ar, refGray, dst, mask, descr2;
 
 vector<KeyPoint> kps1, kps2;
 
-void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
-            const int & refAddr, const size_t refCols, const size_t refRows) {
+void initAR(const int &arAddr, const size_t arCols, const size_t arRows,
+            const int &refAddr, const size_t refCols, const size_t refRows) {
     orb = ORB::create(MAX_FEATURE_POINTS);
     desc_matcher = BFMatcher::create();
 
@@ -47,7 +47,37 @@ void initAR(const int & arAddr, const size_t arCols, const size_t arRows,
     initialized = true;
 }
 
-emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_t srcRows) {
+static void homographyAndCompose(InputArray src, OutputArray dst,
+                                 vector<Point2f> src_pts, vector<Point2f> dst_pts) {
+    Mat H = findHomography(src_pts, dst_pts, RANSAC);
+
+    Mat arWarp;
+    warpPerspective(ar, arWarp, H, src.size());
+
+    Mat maskWarp;
+    warpPerspective(mask, maskWarp, H, src.size());
+
+    H.release();
+
+    Mat maskWarpInv = 1 - maskWarp;
+
+    Mat maskedSrc = Mat::zeros(src.size(), src.type());
+    Mat maskedAr = Mat::zeros(arWarp.size(), arWarp.type());
+
+    src.copyTo(maskedSrc, maskWarpInv);
+    arWarp.copyTo(maskedAr, maskWarp);
+
+    arWarp.release();
+    maskWarp.release();
+    maskWarpInv.release();
+
+    add(maskedSrc, maskedAr, dst, noArray(), CV_8UC1);
+
+    maskedSrc.release();
+    maskedAr.release();
+}
+
+emscripten::val performAR(const int &srcAddr, const size_t srcCols, const size_t srcRows) {
     uint8_t *srcData = reinterpret_cast<uint8_t *>(srcAddr);
 
     Mat src (srcRows, srcCols, CV_8UC4, srcData);
@@ -75,36 +105,11 @@ emscripten::val performAR(const int & srcAddr, const size_t srcCols, const size_
 
         // need 4 pts to define homography, rounded up to 10
         if (dst_pts.size() > 10) {
-            Mat H = findHomography(src_pts, dst_pts, RANSAC);
-
-            Mat arWarp;
-            warpPerspective(ar, arWarp, H, src.size());
-
-            Mat maskWarp;
-            warpPerspective(mask, maskWarp, H, src.size());
-
-            H.release();
-
-            Mat maskWarpInv = 1 - maskWarp;
-
-            Mat maskedSrc = Mat::zeros(src.size(), src.type());
-            Mat maskedAr = Mat::zeros(arWarp.size(), arWarp.type());
-
-            src.copyTo(maskedSrc, maskWarpInv);
-            arWarp.copyTo(maskedAr, maskWarp);
-
-            arWarp.release();
-            maskWarp.release();
-            maskWarpInv.release();
-
-            add(maskedSrc, maskedAr, dst, noArray(), CV_8UC1);
-
-            maskedSrc.release();
-            maskedAr.release();
+            homographyAndCompose(src, dst, src_pts, dst_pts);
         }
     }
 
-    val result = val(emscripten::memory_view<uint8_t>((dst.total()*dst.elemSize())/sizeof(uint8_t), (uint8_t *)dst.data));
+    val result = val(memory_view<uint8_t>((dst.total()*dst.elemSize())/sizeof(uint8_t), (uint8_t *)dst.data));
     return result;
 }
 

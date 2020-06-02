@@ -21,11 +21,11 @@ include_directories( ${opencv_include_modules} )
 file( GLOB opencv_contrib_include_modules "opencv_contrib/modules/*/include" )
 include_directories( ${opencv_contrib_include_modules} )
 
-add_executable( homography homography.cpp )
+add_executable( wasm_ar wasm_ar.cpp )
 
 # Link to opencv.js precompiled libraries
 file( GLOB opencv_js "opencv/build_wasm/lib/*.a" )
-target_link_libraries( homography ${opencv_js} )
+target_link_libraries( wasm_ar ${opencv_js} )
 
 # Specify linker arguments
-set_target_properties( homography PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -Oz -O3 -s WASM_OBJECT_FILES=0 --llvm-lto 1 --closure 1 -s WASM=1 -s USE_ZLIB=1 --bind" )
+set_target_properties( wasm_ar PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -Oz -O3 -s WASM_OBJECT_FILES=0 --closure 1 -s WASM=1 -s USE_ZLIB=1 --bind" )
