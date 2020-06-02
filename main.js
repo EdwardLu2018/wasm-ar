@@ -6,6 +6,9 @@ let frame_uint_array = null;
 let frame_uint8_ptr = null;
 let arResult = null;
 
+let width = 0;
+let height = 0;
+
 // var frames = 0;
 
 const imRead = (im) => {
@@ -51,15 +54,22 @@ const startCamera = async () => {
     })
     .then(stream => {
         const videoSettings = stream.getVideoTracks()[0].getSettings();
-        videoTargetCanvas.width = videoSettings.width;
-        videoTargetCanvas.height = videoSettings.height;
         videoElement.srcObject = stream;
         videoElement.play();
     })
     .catch(function(err) {
         console.log("An error occured! " + err);
     });
+    // startVideoProcessing();
+    videoElement.addEventListener("canplay", function(ev){
+        height = videoElement.videoHeight;
+        width = videoElement.videoWidth;
+        videoElement.setAttribute("width", width);
+        videoElement.setAttribute("height", height);
+        videoTargetCanvas.width = width;
+        videoTargetCanvas.height = height;
     startVideoProcessing();
+    }, false);
 };
 
 const startVideoProcessing = () => {
@@ -92,7 +102,11 @@ const processVideo = () => {
     stats.begin();
 
     // if (frames % 2 == 0) {
-        videoTargetCanvas.getContext("2d").drawImage(videoElement, 0, 0);
+        videoTargetCanvas.getContext("2d").drawImage(
+            videoElement,
+            0, 0,
+            width, height
+        );
         frame_uint_array = imRead(videoTargetCanvas);
         frame_uint8_ptr = window.Module._malloc(frame_uint_array.length);
         window.Module.HEAPU8.set(frame_uint_array, frame_uint8_ptr);
