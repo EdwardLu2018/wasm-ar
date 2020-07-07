@@ -9,6 +9,8 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif(NOT CMAKE_BUILD_TYPE)
 
+set( CMAKE_CXX_FLAGS_RELEASE "-Oz -O3" )
+
 # Needed for opencv2/opencv.hpp
 include_directories( opencv/include )
 
@@ -28,4 +30,4 @@ file( GLOB opencv_js "opencv/build_wasm/lib/*.a" )
 target_link_libraries( wasm_ar ${opencv_js} )
 
 # Specify linker arguments
-set_target_properties( wasm_ar PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -Oz -O3 -s WASM_OBJECT_FILES=0 --closure 1 -s WASM=1 -s USE_ZLIB=1 --bind" )
+set_target_properties( wasm_ar PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s WASM_OBJECT_FILES=0 --closure 1 -s WASM=1 -s USE_ZLIB=1 --bind" )

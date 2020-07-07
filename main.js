@@ -60,7 +60,7 @@ const startCamera = async () => {
     .catch(function(err) {
         console.log("An error occured! " + err);
     });
-    // startVideoProcessing();
+
     videoElement.addEventListener("canplay", function(ev){
         height = videoElement.videoHeight;
         width = videoElement.videoWidth;
@@ -68,7 +68,7 @@ const startCamera = async () => {
         videoElement.setAttribute("height", height);
         videoTargetCanvas.width = width;
         videoTargetCanvas.height = height;
-    startVideoProcessing();
+        startVideoProcessing();
     }, false);
 };
 
