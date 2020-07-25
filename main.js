@@ -1,4 +1,4 @@
-let width = 640;
+let width = Math.min(window.innerWidth, window.innerHeight);
 let arIm = null;
 
 function initStats() {
@@ -103,7 +103,7 @@ function drawBox(corners) {
 
 function performTransform(h, elem) {
     let transform = [h[0], h[3], 0, h[6],
-                     h[1], h[4], 0, 2*h[7],
+                     h[1], h[4], 0, h[7],
                       0  ,  0  , 1,  0  ,
                      h[2], h[5], 0, h[8]];
     transform = "matrix3d("+transform.join(",")+")";
@@ -119,6 +119,7 @@ function processVideo() {
     window.stats.begin();
     const frame = getFrame();
     const [h, warped] = window.homography.performAR(frame, window.width, window.height);
+    // console.log(h)
     // performTransform(h, arIm);
     drawBox(warped);
     window.stats.end();
