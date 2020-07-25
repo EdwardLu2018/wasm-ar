@@ -1,130 +1,144 @@
-const videoElement = document.getElementById("videoElement");
-const videoTargetCanvas = document.getElementById("videoTargetCanvas");
+let width = 640;
+let arIm = null;
 
-let stats = null;
-let frame_uint_array = null;
-let frame_uint8_ptr = null;
-let arResult = null;
+function initStats() {
+    window.stats = new Stats();
+    window.stats.showPanel(0);
+    document.getElementById("stats").appendChild(stats.domElement);
+}
 
-let width = 0;
-let height = 0;
+function setVideoStyle(elem) {
+    elem.style.position = "absolute";
+    elem.style.top = 0;
+    elem.style.left = 0;
+}
 
-// var frames = 0;
+function setupVideo(displayCanv, displayOverlay, setupCallback) {
+    window.videoElem = document.createElement("video");
 
-const imRead = (im) => {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-    canvas.width = im.width;
-    canvas.height = im.height;
-
-    ctx.drawImage(im, 0, 0);
-    return ctx.getImageData(0, 0, im.width, im.height).data;
-};
-
-const imLoad = (cvs, uint8Arr) => {
-    let ctx = cvs.getContext('2d');
-
-    var imData = ctx.createImageData(cvs.width, cvs.height);
-    imData.data.set(uint8Arr);
-
-    ctx.putImageData(imData, 0, 0, 0, 0, cvs.width, cvs.height);
-};
-
-var Module = {
-    onRuntimeInitialized:() => init(Module)
-};
-
-const init = async (Module) => {
-    if (typeof Module === 'undefined') {
-        console.log('* wasm module not loaded *');
-        return;
-    }
-    console.log('* wasm module loaded *');
-
-    await initStats();
-    await startCamera();
-};
-
-const startCamera = async () => {
-    await navigator.mediaDevices.getUserMedia({
-        video: {
-            facingMode: "environment"
-        },
+    navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
         audio: false
     })
     .then(stream => {
         const videoSettings = stream.getVideoTracks()[0].getSettings();
-        videoElement.srcObject = stream;
-        videoElement.play();
+        window.videoElem.srcObject = stream;
+        window.videoElem.play();
     })
     .catch(function(err) {
-        console.log("An error occured! " + err);
+        console.log("ERROR: " + err);
     });
 
-    videoElement.addEventListener("canplay", function(ev){
-        height = videoElement.videoHeight;
-        width = videoElement.videoWidth;
-        videoElement.setAttribute("width", width);
-        videoElement.setAttribute("height", height);
-        videoTargetCanvas.width = width;
-        videoTargetCanvas.height = height;
-        startVideoProcessing();
-    }, false);
-};
+    window.videoCanv = document.createElement("canvas");
+    setVideoStyle(window.videoCanv);
+    window.videoCanv.style.zIndex = 10;
+    if (displayCanv) {
+        document.body.appendChild(window.videoCanv);
+    }
 
-const startVideoProcessing = () => {
-    initAR();
+    if (displayOverlay) {
+        window.overlayCanv = document.createElement("canvas");
+        setVideoStyle(window.overlayCanv);
+        window.overlayCanv.style.zIndex = 20;
+        document.body.appendChild(window.overlayCanv);
+    }
+
+    window.videoElem.addEventListener("canplay", function(e) {
+        window.width = width;
+        window.height = window.videoElem.videoHeight / (window.videoElem.videoWidth / window.width);
+
+        window.videoElem.setAttribute("width", window.width);
+        window.videoElem.setAttribute("height", window.height);
+
+        window.videoCanv.width = window.width;
+        window.videoCanv.height = window.height;
+
+        if (displayOverlay) {
+            window.overlayCanv.width = window.width;
+            window.overlayCanv.height = window.height;
+        }
+
+        if (setupCallback != null) {
+            setupCallback();
+        }
+    }, false);
+}
+
+function getFrame() {
+    const videoCanvCtx = window.videoCanv.getContext("2d");
+    videoCanvCtx.drawImage(
+        window.videoElem,
+        0, 0,
+        window.width,
+        window.height
+    );
+
+    return videoCanvCtx.getImageData(0, 0, window.width, window.height).data;
+}
+
+function drawBox(corners) {
+    const overlayCtx = window.overlayCanv.getContext("2d");
+    overlayCtx.clearRect(
+        0, 0,
+        window.width,
+        window.height
+    );
+
+    overlayCtx.beginPath();
+    overlayCtx.strokeStyle = 'blue';
+    overlayCtx.lineWidth = 2;
+
+    // [x1,y1,x2,y2...]
+    overlayCtx.moveTo(corners[0], corners[1]);
+    overlayCtx.lineTo(corners[2], corners[3]);
+    overlayCtx.lineTo(corners[4], corners[5]);
+    overlayCtx.lineTo(corners[6], corners[7]);
+    overlayCtx.lineTo(corners[0], corners[1]);
+
+    overlayCtx.stroke();
+}
+
+function performTransform(h, elem) {
+    let transform = [h[0], h[3], 0, h[6],
+                     h[1], h[4], 0, 2*h[7],
+                      0  ,  0  , 1,  0  ,
+                     h[2], h[5], 0, h[8]];
+    transform = "matrix3d("+transform.join(",")+")";
+    elem.style["-webkit-transform"] = transform;
+    elem.style["-moz-transform"] = transform;
+    elem.style["-o-transform"] = transform;
+    elem.style.transform = transform;
+    elem.style.display = "block";
+    elem.style.zIndex = 50;
+}
+
+function processVideo() {
+    window.stats.begin();
+    const frame = getFrame();
+    const [h, warped] = window.homography.performAR(frame, window.width, window.height);
+    performTransform(h, arIm);
+    drawBox(warped);
+    window.stats.end();
     requestAnimationFrame(processVideo);
 }
 
-const initStats = async () => {
-    stats = new Stats();
-    stats.showPanel(0);
-    document.getElementById("stats").appendChild(stats.domElement);
-};
+function createRefIm(src) {
+    const refIm = new Image();
+    refIm.src = src;
+    const canv = document.createElement("canvas");
+    const ctx = canv.getContext("2d");
+    canv.width = refIm.width; canv.height = refIm.height;
+    ctx.drawImage(refIm, 0, 0);
+    return ctx.getImageData(0, 0, refIm.width, refIm.height).data;
+}
 
-const initAR = () => {
-    const refImg = document.getElementById("refImg");
-    const ref_uint_array = imRead(refImg);
-    const ref_uint8_ptr = window.Module._malloc(ref_uint_array.length);
-    window.Module.HEAPU8.set(ref_uint_array, ref_uint8_ptr);
-
-    const arImg = document.getElementById("arImg");
-    const ar_uint_array = imRead(arImg);
-    const ar_uint8_ptr = window.Module._malloc(ar_uint_array.length);
-    window.Module.HEAPU8.set(ar_uint_array, ar_uint8_ptr);
-
-    window.Module.initAR(ar_uint8_ptr, arImg.width, arImg.height,
-                         ref_uint8_ptr, refImg.width, refImg.height);
-};
-
-const processVideo = () => {
-    stats.begin();
-
-    // if (frames % 2 == 0) {
-        videoTargetCanvas.getContext("2d").drawImage(
-            videoElement,
-            0, 0,
-            width, height
-        );
-        frame_uint_array = imRead(videoTargetCanvas);
-        frame_uint8_ptr = window.Module._malloc(frame_uint_array.length);
-        window.Module.HEAPU8.set(frame_uint_array, frame_uint8_ptr);
-
-        arResult = window.Module.performAR(
-            frame_uint8_ptr,
-            videoTargetCanvas.width,
-            videoTargetCanvas.height
-        );
-
-        imLoad(videoTargetCanvas, arResult);
-
-        window.Module._free(frame_uint8_ptr);
-    // }
-
-    // frames++;
-
-    stats.end();
-
-    requestAnimationFrame(processVideo);
-};
+window.onload = function() {
+    window.homography = new Homography(() => {
+        initStats();
+        setupVideo(true, true, () => {
+            window.homography.init(createRefIm("ref.jpg"), refIm.width, refIm.height);
+            arIm = document.getElementById("arIm");
+            requestAnimationFrame(processVideo);
+        });
+    });
+}

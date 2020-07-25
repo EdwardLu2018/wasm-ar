@@ -1,33 +1,23 @@
 cmake_minimum_required( VERSION 3.1 )
 project( WASM_AR )
 
-# Use C++ 11 by default
 set( CMAKE_CXX_STANDARD 11 )
 
-# Set Release as default build type
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif(NOT CMAKE_BUILD_TYPE)
 
-set( CMAKE_CXX_FLAGS_RELEASE "-Oz -O3" )
+set( CMAKE_CXX_FLAGS_RELEASE "-O3" )
 
-# Needed for opencv2/opencv.hpp
 include_directories( opencv/include )
-
-# Needed by opencv.hpp for opencv2/opencv_modules.hpp
 include_directories( opencv/build_wasm )
 
-# Needed by opencv_modules.hpp for every module
 file( GLOB opencv_include_modules "opencv/modules/*/include" )
 include_directories( ${opencv_include_modules} )
-file( GLOB opencv_contrib_include_modules "opencv_contrib/modules/*/include" )
-include_directories( ${opencv_contrib_include_modules} )
+
+file( GLOB opencv_js "opencv/build_wasm/lib/*.a" )
 
 add_executable( wasm_ar wasm_ar.cpp )
-
-# Link to opencv.js precompiled libraries
-file( GLOB opencv_js "opencv/build_wasm/lib/*.a" )
 target_link_libraries( wasm_ar ${opencv_js} )
 
-# Specify linker arguments
-set_target_properties( wasm_ar PROPERTIES LINK_FLAGS "-s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s WASM_OBJECT_FILES=0 --closure 1 -s WASM=1 -s USE_ZLIB=1 --bind" )
+set_target_properties( wasm_ar PROPERTIES LINK_FLAGS "-s USE_ZLIB=1 -s LLD_REPORT_UNDEFINED -s MODULARIZE=1 -s EXPORT_NAME='ARWasm' -s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='['_malloc', '_free']' -s EXTRA_EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap']' -s WASM=1" )

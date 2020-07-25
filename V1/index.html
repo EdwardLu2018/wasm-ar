@@ -1,28 +1,46 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="opencv.js"></script>
-    <script src="https://threejs.org/examples/js/libs/stats.min.js"></script>
+        <script src="https://threejs.org/examples/js/libs/stats.min.js"></script>
 
-    <title>wasm opencv</title>
-  </head>
-  <body>
-    <div id="stats"></div>
+        <style>
+            html,
+            body {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
 
-    <img id="refImg" src="./ref_gray.jpg" width="200" height="285" style="display: none;">
-    <img id="arImg" src="./hp_cover.jpg" width="200" height="285" style="display: none;">
+            #videoElement,
+            #videoTargetCanvas {
+                position: fixed;
+                right: 0;
+                bottom: 0;
+                min-width: 100%;
+                min-height: 100%;
+            }
+        </style>
 
-    <div align="center">
-        <video id="videoElement" height="0" autoplay="" playsinline="">Your browser does not support the video tag.</video>
-        <canvas id="videoTargetCanvas"></canvas>
-    </div>
+        <title>WASM-AR</title>
+    </head>
+    <body>
+        <div id="stats"></div>
+        <div>
+            <img id="refImg" src="ref.jpg" width=200 height=285 style="display:none;">
+            <img id="arImg" src="ar.jpg" width=200 height=285 style="display:none;">
+        </div>
 
-    <script type="module">
-        import "./main.js";
-    </script>
-</body>
+        <div>
+            <video id="videoElement" autoplay="" playsinline="" style="display:none;">
+                Your browser does not support the video tag.
+            </video>
+            <canvas id="videoTargetCanvas"></canvas>
+        </div>
+
+        <script type="text/javascript" src="./main.js"></script>
+        <script async type="text/javascript" src="./build/wasm_ar.js"></script>
+    </body>
 </html>
