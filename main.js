@@ -15,9 +15,12 @@ function setVideoStyle(elem) {
 
 function setupVideo(displayCanv, displayOverlay, setupCallback) {
     window.videoElem = document.createElement("video");
+    window.videoElem.setAttribute("autoplay", "");
+    window.videoElem.setAttribute("muted", "");
+    window.videoElem.setAttribute("playsinline", "");
 
     navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
+        video: { facingMode: "environment" },
         audio: false
     })
     .then(stream => {
@@ -85,8 +88,8 @@ function drawBox(corners) {
     );
 
     overlayCtx.beginPath();
-    overlayCtx.strokeStyle = 'blue';
-    overlayCtx.lineWidth = 2;
+    overlayCtx.strokeStyle = "blue";
+    overlayCtx.lineWidth = 5;
 
     // [x1,y1,x2,y2...]
     overlayCtx.moveTo(corners[0], corners[1]);
