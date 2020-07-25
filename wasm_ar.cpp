@@ -12,7 +12,7 @@ using namespace std;
 using namespace cv;
 
 #define GOOD_MATCH_PERCENT  0.7f
-#define MAX_FEATURES        1000
+#define MAX_FEATURES        500
 
 bool initialized = false;
 

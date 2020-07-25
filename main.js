@@ -119,7 +119,7 @@ function processVideo() {
     window.stats.begin();
     const frame = getFrame();
     const [h, warped] = window.homography.performAR(frame, window.width, window.height);
-    performTransform(h, arIm);
+    // performTransform(h, arIm);
     drawBox(warped);
     window.stats.end();
     requestAnimationFrame(processVideo);
