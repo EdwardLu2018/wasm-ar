@@ -12,7 +12,7 @@ using namespace std;
 using namespace cv;
 
 #define GOOD_MATCH_PERCENT  0.7f
-#define MAX_FEATURES        1500
+#define MAX_FEATURES        2000
 
 bool initialized = false;
 
@@ -98,8 +98,6 @@ double *performAR(uchar srcData[], size_t srcCols, size_t srcRows) {
                 src_pts.push_back( kps2[knn_matches[i][0].trainIdx].pt );
             }
         }
-
-        // printf("matches: %lu\n", dst_pts.size());
 
         // need at least 4 pts to define homography, rounded up to 10
         if (dst_pts.size() > 10) {

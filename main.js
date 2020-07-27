@@ -1,5 +1,4 @@
 let width = Math.min(window.innerWidth, window.innerHeight);
-let arIm = null;
 
 function initStats() {
     window.stats = new Stats();
@@ -13,7 +12,7 @@ function setVideoStyle(elem) {
     elem.style.left = 0;
 }
 
-function setupVideo(displayCanv, displayOverlay, setupCallback) {
+function setupVideo(displayVid, displayOverlay, setupCallback) {
     window.videoElem = document.createElement("video");
     window.videoElem.setAttribute("autoplay", "");
     window.videoElem.setAttribute("muted", "");
@@ -34,15 +33,15 @@ function setupVideo(displayCanv, displayOverlay, setupCallback) {
 
     window.videoCanv = document.createElement("canvas");
     setVideoStyle(window.videoCanv);
-    window.videoCanv.style.zIndex = 10;
-    if (displayCanv) {
+    window.videoCanv.style.zIndex = -1;
+    if (displayVid) {
         document.body.appendChild(window.videoCanv);
     }
 
     if (displayOverlay) {
         window.overlayCanv = document.createElement("canvas");
         setVideoStyle(window.overlayCanv);
-        window.overlayCanv.style.zIndex = 20;
+        window.overlayCanv.style.zIndex = 0;
         document.body.appendChild(window.overlayCanv);
     }
 
@@ -79,7 +78,7 @@ function getFrame() {
     return videoCanvCtx.getImageData(0, 0, window.width, window.height).data;
 }
 
-function drawBox(corners) {
+function drawBbox(corners) {
     const overlayCtx = window.overlayCanv.getContext("2d");
     overlayCtx.clearRect(
         0, 0,
@@ -89,7 +88,7 @@ function drawBox(corners) {
 
     overlayCtx.beginPath();
     overlayCtx.strokeStyle = "blue";
-    overlayCtx.lineWidth = 5;
+    overlayCtx.lineWidth = 2;
 
     // [x1,y1,x2,y2...]
     overlayCtx.moveTo(corners[0], corners[1]);
@@ -102,33 +101,33 @@ function drawBox(corners) {
 }
 
 function performTransform(h, elem) {
+    // column major order
     let transform = [h[0], h[3], 0, h[6],
                      h[1], h[4], 0, h[7],
                       0  ,  0  , 1,  0  ,
                      h[2], h[5], 0, h[8]];
     transform = "matrix3d("+transform.join(",")+")";
+    elem.style["-ms-transform"] = transform;
     elem.style["-webkit-transform"] = transform;
     elem.style["-moz-transform"] = transform;
     elem.style["-o-transform"] = transform;
     elem.style.transform = transform;
     elem.style.display = "block";
-    elem.style.zIndex = 50;
+    elem.style.zIndex = 1;
 }
 
 function processVideo() {
     window.stats.begin();
     const frame = getFrame();
     const [h, warped] = window.homography.performAR(frame, window.width, window.height);
-    // console.log(h)
-    // performTransform(h, arIm);
-    drawBox(warped);
+    performTransform(h, window.arIm);
+    drawBbox(warped);
     window.stats.end();
     requestAnimationFrame(processVideo);
 }
 
-function createRefIm(src) {
-    const refIm = new Image();
-    refIm.src = src;
+function createRefIm() {
+    const refIm = document.getElementById("refIm");
     const canv = document.createElement("canvas");
     const ctx = canv.getContext("2d");
     canv.width = refIm.width; canv.height = refIm.height;
@@ -140,8 +139,9 @@ window.onload = function() {
     window.homography = new Homography(() => {
         initStats();
         setupVideo(true, true, () => {
-            window.homography.init(createRefIm("ref.jpg"), refIm.width, refIm.height);
-            arIm = document.getElementById("arIm");
+            window.homography.init(createRefIm(), refIm.width, refIm.height);
+            window.arIm = document.getElementById("arIm");
+            window.arIm.style["transform-origin"] = "top left"; // default is center
             requestAnimationFrame(processVideo);
         });
     });
