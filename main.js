@@ -120,7 +120,7 @@ function processVideo() {
     window.stats.begin();
     const frame = getFrame();
     const [h, warped] = window.homography.performAR(frame, window.width, window.height);
-    performTransform(h, window.arIm);
+    performTransform(h, window.arElem);
     drawBbox(warped);
     window.stats.end();
     requestAnimationFrame(processVideo);
@@ -140,8 +140,8 @@ window.onload = function() {
         initStats();
         setupVideo(true, true, () => {
             window.homography.init(createRefIm(), refIm.width, refIm.height);
-            window.arIm = document.getElementById("arIm");
-            window.arIm.style["transform-origin"] = "top left"; // default is center
+            window.arElem = document.getElementById("arElem");
+            window.arElem.style["transform-origin"] = "top left"; // default is center
             requestAnimationFrame(processVideo);
         });
     });
