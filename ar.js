@@ -1,7 +1,9 @@
-class Homography {
+class ImageTracker {
     constructor(callback) {
         let _this = this;
         this.ready = false;
+        this.shouldTrack = false;
+        this.validPoints = false;
         ARWasm().then(function (Module) {
             console.log("AR WASM module loaded.");
             _this.onWasmInit(Module);
@@ -31,26 +33,31 @@ class Homography {
         this.ready = true;
     }
 
-    performAR(im_arr, width, height) {
-        if (!this.ready) return null;
+    validHomography(h) {
+        const N = 10;
+        // check if determinant of top left 2x2 is valid
+        const det = h[0]*h[4]-h[1]*h[3];
+        return (1/N < Math.abs(det) && Math.abs(det) < N);
+    }
+
+    callWasm(name, im_arr, width, height) {
+        if (!this.ready || !this.shouldTrack) return [false, null, null];
 
         const im_ptr = this._Module._malloc(im_arr.length);
         this._Module.HEAPU8.set(im_arr, im_ptr);
 
-        // console.time("performAR")
         const ptr = this._Module.ccall(
-            "_Z9performARPhmm",
+            name,
             "number",
             ["number", "number", "number"],
             [im_ptr, width, height]
         );
-        // console.timeEnd("performAR")
         const ptrF64 = ptr / Float64Array.BYTES_PER_ELEMENT;
 
-        let i = 0
-        const H = [];
+        let i = 0;
+        const h = [];
         for (; i < 9; i++) {
-            H.push(this._Module.HEAPF64[ptrF64+i]);
+            h.push(this._Module.HEAPF64[ptrF64+i]);
         }
 
         const warped = [];
@@ -61,6 +68,23 @@ class Homography {
         this._Module._free(ptr);
         this._Module._free(im_ptr);
 
-        return [H, warped];
+        return [this.validHomography(h), h, warped];
+    }
+
+    resetTracking(im_arr, width, height) {
+        const [valid, h, warped] = this.callWasm("_Z13resetTrackingPhmm", im_arr, width, height);
+        this.validPoints = valid;
+        return [valid, h, warped];
+    }
+
+    track(im_arr, width, height) {
+        if (!this.validPoints) {
+            return this.resetTracking(im_arr, width, height);
+        }
+
+        const [valid, h, warped] = this.callWasm("_Z5trackPhmm", im_arr, width, height);
+        this.validPoints = valid;
+
+        return [valid, h, warped];
     }
 }

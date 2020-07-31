@@ -21,8 +21,11 @@ bool initialized = false;
 Ptr<ORB> orb = NULL;
 Ptr<BFMatcher> matcher = NULL;
 
-Mat refGray, refDescr;
+Mat H, framePrev;
+int numMatches = 0;
+vector<Point2f> framePts;
 
+Mat refGray, refDescr;
 vector<KeyPoint> refKeyPts;
 vector<Point2f> corners(4);
 
@@ -52,7 +55,10 @@ static bool homographyValid(Mat H) {
     return 1/N < fabs(det) && fabs(det) < N;
 }
 
-static void fill_output(double *output, vector<Point2f> warped, Mat H) {
+static void fill_output(Mat H, double *output) {
+    vector<Point2f> warped(4);
+    perspectiveTransform(corners, warped, H);
+
     output[0] = H.at<double>(0,0);
     output[1] = H.at<double>(0,1);
     output[2] = H.at<double>(0,2);
@@ -91,95 +97,97 @@ void initAR(uchar refData[], size_t refCols, size_t refRows) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-double *performAR(uchar frameData[], size_t frameCols, size_t frameRows) {
-    static Mat H, frameOld;
-    static bool tracking = false;
-    static short numMatches = 0, frames = 0;
-    static vector<Point2f> framePts;
-    static vector<Point2f> warped(4);
-
+double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
     // 9 from homography matrix, 8 from warped corners
-    double *result = new double[17];
+    double *output = new double[17];
 
     if (!initialized) {
         cout << "Reference image not found. AR is unintialized!" << endl;
-        return result;
+        return output;
     }
 
-    Mat transform;
-    Mat frameGray = im_gray(frameData, frameCols, frameRows);
-    // GaussianBlur(frameGray, frameGray, Size(5,5), 2);
+    Mat frameCurr = im_gray(frameData, frameCols, frameRows);
 
-    if (!tracking) {
-        framePts.clear();
+    Mat frameDescr;
+    vector<KeyPoint> frameKeyPts;
+    orb->detectAndCompute(frameCurr, noArray(), frameKeyPts, frameDescr);
 
-        Mat frameDescr;
-        vector<KeyPoint> frameKeyPts;
-        orb->detectAndCompute(frameGray, noArray(), frameKeyPts, frameDescr);
+    vector<vector<DMatch>> knnMatches;
+    matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
 
-        vector<vector<DMatch>> knnMatches;
-        matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
-
-        vector<Point2f> refPts;
-        // find the best matches
-        for (size_t i = 0; i < knnMatches.size(); ++i) {
-            if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
-                framePts.push_back( frameKeyPts[knnMatches[i][0].queryIdx].pt );
-                refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
-            }
-        }
-
-        numMatches = framePts.size();
-        // need at least 4 pts to define homography
-        if (numMatches > 15) {
-            H = findHomography(refPts, framePts, RANSAC);
-            tracking = true;
-        }
-    }
-    else {
-        vector<float> err;
-        vector<uchar> status;
-        vector<Point2f> newPts, goodPtsNew, goodPtsOld;
-        calcOpticalFlowPyrLK(frameOld, frameGray, framePts, newPts, status, err);
-        for (size_t i = 0; i < framePts.size(); ++i) {
-            if (status[i]) {
-                goodPtsNew.push_back(newPts[i]);
-                goodPtsOld.push_back(framePts[i]);
-            }
-        }
-
-        if (!goodPtsNew.empty() && goodPtsNew.size() > 2*numMatches/3) {
-            transform = estimateAffine2D(goodPtsOld, goodPtsNew);
-
-            // add row of [0,0,1] to transform to make it 3x3
-            Mat row = Mat::zeros(1, 3, CV_64F);
-            row.at<double>(0,2) = 1.0;
-            transform.push_back(row);
-
-            // update homography matrix
-            H = transform * H;
-
-            // set old points to new points
-            framePts = goodPtsNew;
-        }
-        else {
-            // stop tracking if new points are insufficient
-            tracking = false;
+    framePts.clear();
+    vector<Point2f> refPts;
+    // find the best matches
+    for (size_t i = 0; i < knnMatches.size(); ++i) {
+        if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
+            framePts.push_back( frameKeyPts[knnMatches[i][0].queryIdx].pt );
+            refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
         }
     }
 
-    if (tracking) {
+    // need at least 4 pts to define homography
+    if (framePts.size() > 10) {
+        H = findHomography(refPts, framePts, RANSAC);
         if (homographyValid(H)) {
-            perspectiveTransform(corners, warped, H);
-            fill_output(result, warped, H);
-        }
-        else {
-            // stop tracking if homography is invalid
-            tracking = false;
+            numMatches = framePts.size();
+            fill_output(H, output);
         }
     }
 
-    frameOld = frameGray.clone();
+    framePrev = frameCurr.clone();
 
-    return result;
+    return output;
+}
+
+EMSCRIPTEN_KEEPALIVE
+double *track(uchar frameData[], size_t frameCols, size_t frameRows) {
+    // 9 from homography matrix, 8 from warped corners
+    double *output = new double[17];
+
+    if (!initialized) {
+        cout << "Reference image not found. AR is unintialized!" << endl;
+        return output;
+    }
+
+    if (framePrev.empty()) {
+        cout << "Tracking is uninitialized!" << endl;
+        return output;
+    }
+
+    Mat frameCurr = im_gray(frameData, frameCols, frameRows);
+    // GaussianBlur(frameCurr, frameCurr, Size(5,5), 2);
+
+    vector<float> err;
+    vector<uchar> status;
+    vector<Point2f> newPts, goodPtsNew, goodPtsOld;
+    calcOpticalFlowPyrLK(framePrev, frameCurr, framePts, newPts, status, err);
+    for (size_t i = 0; i < framePts.size(); ++i) {
+        if (status[i]) {
+            goodPtsNew.push_back(newPts[i]);
+            goodPtsOld.push_back(framePts[i]);
+        }
+    }
+
+    if (!goodPtsNew.empty() && goodPtsNew.size() > 2*numMatches/3) {
+        Mat transform = estimateAffine2D(goodPtsOld, goodPtsNew);
+
+        // add row of [0,0,1] to transform to make it 3x3
+        Mat row = Mat::zeros(1, 3, CV_64F);
+        row.at<double>(0,2) = 1.0;
+        transform.push_back(row);
+
+        // update homography matrix
+        H = transform * H;
+
+        // set old points to new points
+        framePts = goodPtsNew;
+
+        if (homographyValid(H)) {
+            fill_output(H, output);
+        }
+    }
+
+    framePrev = frameCurr.clone();
+
+    return output;
 }

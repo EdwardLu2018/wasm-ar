@@ -119,28 +119,32 @@ function performTransform(h, elem) {
     elem.style["-o-transform"] = transform;
     elem.style.transform = transform;
     elem.style.display = "block";
-    elem.style.zIndex = 1;
 }
 
-function validHomography(h) {
-    const N = 100;
-    // check if determinant of top left 2x2 is valid
-    const det = h[0]*h[4]+h[1]*h[3];
-    return (1/N < Math.abs(det) && Math.abs(det) < N);
-}
+window.addEventListener("touchstart", function() {
+    window.tracker.shouldTrack = !window.tracker.shouldTrack;
+});
+
+window.addEventListener("mousedown", function() {
+    window.tracker.shouldTrack = !window.tracker.shouldTrack;
+});
 
 function processVideo() {
     window.stats.begin();
+
     const frame = getFrame();
-    const [h, warped] = window.homography.performAR(frame, window.width, window.height);
-    if (validHomography(h)) {
+    const [valid, h, warped] = window.tracker.track(frame, window.width, window.height);
+    if (valid) {
         performTransform(h, window.arElem);
         drawBbox(warped);
     }
     else {
+        clearOverlayCtx(window.overlayCanv.getContext("2d"));
         window.arElem.style.display = "none";
     }
+
     window.stats.end();
+
     requestAnimationFrame(processVideo);
 }
 
@@ -154,12 +158,13 @@ function createRefIm() {
 }
 
 window.onload = function() {
-    window.homography = new Homography(() => {
+    window.tracker = new ImageTracker(() => {
         initStats();
         setupVideo(true, true, () => {
-            window.homography.init(createRefIm(), refIm.width, refIm.height);
+            window.tracker.init(createRefIm(), refIm.width, refIm.height);
             window.arElem = document.getElementById("arElem");
             window.arElem.style["transform-origin"] = "top left"; // default is center
+            window.arElem.style.zIndex = 1;
             requestAnimationFrame(processVideo);
         });
     });
