@@ -125,7 +125,7 @@ function performTransform(h, elem) {
 function validHomography(h) {
     const N = 100;
     // check if determinant of top left 2x2 is valid
-    const det = h[0]*h[4]+h[1]*h[3];
+    const det = h[0]*h[4]-h[1]*h[3];
     return (1/N < Math.abs(det) && Math.abs(det) < N);
 }
 
