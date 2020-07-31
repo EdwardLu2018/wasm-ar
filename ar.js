@@ -47,7 +47,7 @@ class Homography {
         // console.timeEnd("performAR")
         const ptrF64 = ptr / Float64Array.BYTES_PER_ELEMENT;
 
-        let i = 0;
+        let i = 0
         const H = [];
         for (; i < 9; i++) {
             H.push(this._Module.HEAPF64[ptrF64+i]);
