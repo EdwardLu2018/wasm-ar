@@ -14,7 +14,7 @@ using namespace cv;
 
 #define GOOD_MATCH_RATIO    0.7f
 #define MAX_FEATURES        2000
-#define N                   100
+#define N                   10
 
 bool initialized = false;
 

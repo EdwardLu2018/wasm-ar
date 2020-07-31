@@ -55,6 +55,7 @@ class ImageTracker {
         const ptrF64 = ptr / Float64Array.BYTES_PER_ELEMENT;
 
         let i = 0;
+
         const h = [];
         for (; i < 9; i++) {
             h.push(this._Module.HEAPF64[ptrF64+i]);
@@ -86,5 +87,20 @@ class ImageTracker {
         this.validPoints = valid;
 
         return [valid, h, warped];
+    }
+
+    performTransform(h, elem) {
+        // column major order
+        let transform = [h[0], h[3], 0, h[6],
+                         h[1], h[4], 0, h[7],
+                          0  ,  0  , 1,  0  ,
+                         h[2], h[5], 0, h[8]];
+        transform = "matrix3d("+transform.join(",")+")";
+        elem.style["-ms-transform"] = transform;
+        elem.style["-webkit-transform"] = transform;
+        elem.style["-moz-transform"] = transform;
+        elem.style["-o-transform"] = transform;
+        elem.style.transform = transform;
+        elem.style.display = "block";
     }
 }

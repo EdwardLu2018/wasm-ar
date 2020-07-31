@@ -106,21 +106,6 @@ function drawBbox(corners) {
     overlayCtx.stroke();
 }
 
-function performTransform(h, elem) {
-    // column major order
-    let transform = [h[0], h[3], 0, h[6],
-                     h[1], h[4], 0, h[7],
-                      0  ,  0  , 1,  0  ,
-                     h[2], h[5], 0, h[8]];
-    transform = "matrix3d("+transform.join(",")+")";
-    elem.style["-ms-transform"] = transform;
-    elem.style["-webkit-transform"] = transform;
-    elem.style["-moz-transform"] = transform;
-    elem.style["-o-transform"] = transform;
-    elem.style.transform = transform;
-    elem.style.display = "block";
-}
-
 window.addEventListener("touchstart", function() {
     window.tracker.shouldTrack = !window.tracker.shouldTrack;
 });
@@ -135,7 +120,7 @@ function processVideo() {
     const frame = getFrame();
     const [valid, h, warped] = window.tracker.track(frame, window.width, window.height);
     if (valid) {
-        performTransform(h, window.arElem);
+        window.tracker.performTransform(h, window.arElem);
         drawBbox(warped);
     }
     else {
