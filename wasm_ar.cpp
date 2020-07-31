@@ -14,7 +14,6 @@ using namespace cv;
 
 #define GOOD_MATCH_RATIO    0.7f
 #define MAX_FEATURES        2000
-#define N                   100
 
 bool initialized = false;
 
@@ -45,11 +44,6 @@ static Mat im_gray(uchar data[], size_t cols, size_t rows) {
     }
 
     return Mat(rows, cols, CV_8UC1, gray);
-}
-
-static bool homographyValid(Mat H) {
-    const double det = H.at<double>(0,0)*H.at<double>(1,1)-H.at<double>(1,0)*H.at<double>(0,1);
-    return 1/N < fabs(det) && fabs(det) < N;
 }
 
 static void fill_output(double *output, vector<Point2f> warped, Mat H) {
@@ -163,20 +157,13 @@ double *performAR(uchar frameData[], size_t frameCols, size_t frameRows) {
             framePts = goodPtsNew;
         }
         else {
-            // stop tracking if new points are insufficient
-            tracking = false;
+            tracking = false; // stop tracking if new points are insufficient
         }
     }
 
     if (tracking) {
-        if (homographyValid(H)) {
-            perspectiveTransform(corners, warped, H);
-            fill_output(result, warped, H);
-        }
-        else {
-            // stop tracking if homography is invalid
-            tracking = false;
-        }
+        perspectiveTransform(corners, warped, H);
+        fill_output(result, warped, H);
     }
 
     frameOld = frameGray.clone();
