@@ -78,13 +78,19 @@ function getFrame() {
     return videoCanvCtx.getImageData(0, 0, window.width, window.height).data;
 }
 
-function drawBbox(corners) {
-    const overlayCtx = window.overlayCanv.getContext("2d");
+function clearOverlayCtx(overlayCtx) {
+    if (!window.overlayCanv) return;
     overlayCtx.clearRect(
         0, 0,
         window.width,
         window.height
     );
+}
+
+function drawBbox(corners) {
+    if (!window.overlayCanv) return;
+    const overlayCtx = window.overlayCanv.getContext("2d");
+    clearOverlayCtx(overlayCtx);
 
     overlayCtx.beginPath();
     overlayCtx.strokeStyle = "blue";
@@ -116,12 +122,24 @@ function performTransform(h, elem) {
     elem.style.zIndex = 1;
 }
 
+function validHomography(h) {
+    const N = 100;
+    // check if determinant of top left 2x2 is valid
+    const det = h[0]*h[4]+h[1]*h[3];
+    return (1/N < Math.abs(det) && Math.abs(det) < N);
+}
+
 function processVideo() {
     window.stats.begin();
     const frame = getFrame();
     const [h, warped] = window.homography.performAR(frame, window.width, window.height);
-    performTransform(h, window.arElem);
-    drawBbox(warped);
+    if (validHomography(h)) {
+        performTransform(h, window.arElem);
+        drawBbox(warped);
+    }
+    else {
+        window.arElem.style.display = "none";
+    }
     window.stats.end();
     requestAnimationFrame(processVideo);
 }

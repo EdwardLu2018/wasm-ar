@@ -2,7 +2,8 @@
 
 #include <emscripten/emscripten.h>
 
-// #include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 #include <opencv2/core/types_c.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -11,44 +12,68 @@
 using namespace std;
 using namespace cv;
 
-#define GOOD_MATCH_PERCENT  0.7f
+#define GOOD_MATCH_RATIO    0.7f
 #define MAX_FEATURES        2000
 
 bool initialized = false;
 
 Ptr<ORB> orb = NULL;
-Ptr<BFMatcher> desc_matcher = NULL;
+Ptr<BFMatcher> matcher = NULL;
 
-Mat refGray, descr1, descr2;
+Mat refGray, refDescr;
 
-vector<KeyPoint> kps1, kps2;
+vector<KeyPoint> refKeyPts;
 vector<Point2f> corners(4);
 
-EMSCRIPTEN_KEEPALIVE
-void initAR(uchar refData[], size_t refCols, size_t refRows) {
-    orb = ORB::create(MAX_FEATURES);
-    desc_matcher = BFMatcher::create();
-
-    uchar gray[refRows][refCols];
+static Mat im_gray(uchar data[], size_t cols, size_t rows) {
     uint32_t idx;
-    for (int i = 0; i < refRows; ++i) {
-        for (int j = 0; j < refCols; ++j) {
-            idx = (i * refCols * 4) + j * 4;
+    uchar gray[rows][cols];
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            idx = (i * cols * 4) + j * 4;
 
             // rgba to rgb
-            uchar r = refData[idx];
-            uchar g = refData[idx + 1];
-            uchar b = refData[idx + 2];
-            // uchar a = refData[idx + 3];
+            uchar r = data[idx];
+            uchar g = data[idx + 1];
+            uchar b = data[idx + 2];
+            // uchar a = data[idx + 3];
 
-            // turn src image to gray scale
+            // turn frame image to gray scale
             gray[i][j] = (0.30 * r) + (0.59 * g) + (0.11 * b);
         }
     }
 
-    Mat refGray(refRows, refCols, CV_8UC1, gray);
+    return Mat(rows, cols, CV_8UC1, gray);
+}
 
-    orb->detectAndCompute(refGray, noArray(), kps2, descr2);
+static void fill_output(double *output, vector<Point2f> warped, Mat H) {
+    output[0] = H.at<double>(0,0);
+    output[1] = H.at<double>(0,1);
+    output[2] = H.at<double>(0,2);
+    output[3] = H.at<double>(1,0);
+    output[4] = H.at<double>(1,1);
+    output[5] = H.at<double>(1,2);
+    output[6] = H.at<double>(2,0);
+    output[7] = H.at<double>(2,1);
+    output[8] = H.at<double>(2,2);
+
+    output[9]  = warped[0].x;
+    output[10] = warped[0].y;
+    output[11] = warped[1].x;
+    output[12] = warped[1].y;
+    output[13] = warped[2].x;
+    output[14] = warped[2].y;
+    output[15] = warped[3].x;
+    output[16] = warped[3].y;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void initAR(uchar refData[], size_t refCols, size_t refRows) {
+    orb = ORB::create(MAX_FEATURES);
+    matcher = BFMatcher::create();
+
+    Mat refGray = im_gray(refData, refCols, refRows);
+    orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr);
 
     corners[0] = cvPoint( 0, 0 );
     corners[1] = cvPoint( refCols, 0 );
@@ -56,74 +81,92 @@ void initAR(uchar refData[], size_t refCols, size_t refRows) {
     corners[3] = cvPoint( 0, refRows );
 
     initialized = true;
+    cout << "Ready!" << endl;
 }
 
 EMSCRIPTEN_KEEPALIVE
-double *performAR(uchar srcData[], size_t srcCols, size_t srcRows) {
-    static Mat H;
+double *performAR(uchar frameData[], size_t frameCols, size_t frameRows) {
+    static Mat H, frameOld;
+    static bool tracking = false;
+    static short numMatches = 0, frames = 0;
+    static vector<Point2f> framePts;
     static vector<Point2f> warped(4);
 
-    double *result = new double[17]; // 9 from h, 8 from warp
+    // 9 from homography matrix, 8 from warped corners
+    double *result = new double[17];
 
-    uchar gray[srcRows][srcCols];
-    uint32_t idx;
-    for (int i = 0; i < srcRows; ++i) {
-        for (int j = 0; j < srcCols; ++j) {
-            idx = (i * srcCols * 4) + j * 4;
-
-            // rgba to rgb
-            uchar r = srcData[idx];
-            uchar g = srcData[idx + 1];
-            uchar b = srcData[idx + 2];
-            // uchar a = srcData[idx + 3];
-
-            // turn src image to gray scale
-            gray[i][j] = (0.30 * r) + (0.59 * g) + (0.11 * b);
-        }
+    if (!initialized) {
+        cout << "Reference image not found. AR is unintialized!" << endl;
+        return result;
     }
 
-    Mat srcGray(srcRows, srcCols, CV_8UC1, gray);
-    // GaussianBlur(srcGray, srcGray, Size(3,3), 2);
+    Mat transform;
+    Mat frameGray = im_gray(frameData, frameCols, frameRows);
+    // GaussianBlur(frameGray, frameGray, Size(5,5), 2);
 
-    if (initialized) {
-        orb->detectAndCompute(srcGray, noArray(), kps1, descr1);
+    if (!tracking) {
+        framePts.clear();
 
-        vector<vector<DMatch>> knn_matches;
-        desc_matcher->knnMatch(descr1, descr2, knn_matches, 2);
+        Mat frameDescr;
+        vector<KeyPoint> frameKeyPts;
+        orb->detectAndCompute(frameGray, noArray(), frameKeyPts, frameDescr);
 
-        vector<Point2f> dst_pts, src_pts;
-        for (size_t i = 0; i < knn_matches.size(); ++i) {
-            if (knn_matches[i][0].distance < GOOD_MATCH_PERCENT * knn_matches[i][1].distance) {
-                dst_pts.push_back( kps1[knn_matches[i][0].queryIdx].pt );
-                src_pts.push_back( kps2[knn_matches[i][0].trainIdx].pt );
+        vector<vector<DMatch>> knnMatches;
+        matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
+
+        vector<Point2f> refPts;
+        // find the best matches
+        for (size_t i = 0; i < knnMatches.size(); ++i) {
+            if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
+                framePts.push_back( frameKeyPts[knnMatches[i][0].queryIdx].pt );
+                refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
             }
         }
 
-        // need at least 4 pts to define homography, rounded up to 10
-        if (dst_pts.size() > 10) {
-            H = findHomography(src_pts, dst_pts, RANSAC);
-            perspectiveTransform(corners, warped, H);
-
-            result[0] = H.at<double>(0,0);
-            result[1] = H.at<double>(0,1);
-            result[2] = H.at<double>(0,2);
-            result[3] = H.at<double>(1,0);
-            result[4] = H.at<double>(1,1);
-            result[5] = H.at<double>(1,2);
-            result[6] = H.at<double>(2,0);
-            result[7] = H.at<double>(2,1);
-            result[8] = H.at<double>(2,2);
-
-            result[9]  = warped[0].x;
-            result[10] = warped[0].y;
-            result[11] = warped[1].x;
-            result[12] = warped[1].y;
-            result[13] = warped[2].x;
-            result[14] = warped[2].y;
-            result[15] = warped[3].x;
-            result[16] = warped[3].y;
+        numMatches = framePts.size();
+        // need at least 4 pts to define homography
+        if (numMatches > 15) {
+            H = findHomography(refPts, framePts, RANSAC);
+            tracking = true;
         }
     }
+    else {
+        vector<float> err;
+        vector<uchar> status;
+        vector<Point2f> newPts, goodPtsNew, goodPtsOld;
+        calcOpticalFlowPyrLK(frameOld, frameGray, framePts, newPts, status, err);
+        for (size_t i = 0; i < framePts.size(); ++i) {
+            if (status[i]) {
+                goodPtsNew.push_back(newPts[i]);
+                goodPtsOld.push_back(framePts[i]);
+            }
+        }
+
+        if (!goodPtsNew.empty() && goodPtsNew.size() > 2*numMatches/3) {
+            transform = estimateAffine2D(goodPtsOld, goodPtsNew);
+
+            // add row of [0,0,1] to transform to make it 3x3
+            Mat row = Mat::zeros(1, 3, CV_64F);
+            row.at<double>(0,2) = 1.0;
+            transform.push_back(row);
+
+            // update homography matrix
+            H = transform * H;
+
+            // set old points to new points
+            framePts = goodPtsNew;
+        }
+        else {
+            tracking = false; // stop tracking if new points are insufficient
+        }
+    }
+
+    if (tracking) {
+        perspectiveTransform(corners, warped, H);
+        fill_output(result, warped, H);
+    }
+
+    frameOld = frameGray.clone();
 
     return result;
 }

@@ -37,14 +37,14 @@ class Homography {
         const im_ptr = this._Module._malloc(im_arr.length);
         this._Module.HEAPU8.set(im_arr, im_ptr);
 
-        console.time("performAR")
+        // console.time("performAR")
         const ptr = this._Module.ccall(
             "_Z9performARPhmm",
             "number",
             ["number", "number", "number"],
             [im_ptr, width, height]
         );
-        console.timeEnd("performAR")
+        // console.timeEnd("performAR")
         const ptrF64 = ptr / Float64Array.BYTES_PER_ELEMENT;
 
         let i = 0
