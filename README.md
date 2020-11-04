@@ -12,12 +12,20 @@ Demo on laptop                    |  Demo on iPhone
 6. If homography matrix becomes invalid or at most 1/3 of tracked descriptor points are lost, repeat step 2.
 
 ## Building
+
+You need git, cmake and python installed. You need also to clone OpenCV in the root of the project.
 Run:
 ```
 git clone https://github.com/opencv/opencv.git
 ```
+Build OpenCV with WebAssembly support:
 
-Follow the instructions to build OpenCV with WebAssembly support here: [https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html](https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html)
+```
+python ./platforms/js/build_js.py build_wasm --build_wasm
+```
+The python script will build the static and the WASM lib in the build_wasm folder.
+
+Additional instructions to build OpenCV with WebAssembly support here: [https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html](https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html)
 
 Then, run:
 ```
