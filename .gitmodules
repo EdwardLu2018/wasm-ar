@@ -1,6 +1,0 @@
-[submodule "emsdk"]
-	path = emsdk
-	url = https://github.com/emscripten-core/emsdk.git
-[submodule "opencv"]
-	path = opencv
-	url = https://github.com/opencv/opencv.git
