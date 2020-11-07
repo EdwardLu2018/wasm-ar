@@ -17,7 +17,7 @@ include_directories( ${opencv_include_modules} )
 
 file( GLOB opencv_js "opencv/build_wasm/lib/*.a" )
 
-add_executable( wasm_ar wasm_ar.cpp )
+add_executable( wasm_ar src/wasm_ar.cpp )
 target_link_libraries( wasm_ar ${opencv_js} )
 
-set_target_properties( wasm_ar PROPERTIES LINK_FLAGS "-s USE_ZLIB=1 -s LLD_REPORT_UNDEFINED -s MODULARIZE=1 -s EXPORT_NAME='ARWasm' -s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='['_malloc', '_free']' -s EXTRA_EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap']' -s WASM=1" )
+set_target_properties( wasm_ar PROPERTIES LINK_FLAGS "-s EXPORT_NAME='ARWasm' -s USE_ZLIB=1 -s MODULARIZE=1 -s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='['_malloc', '_free']' -s EXTRA_EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap']' -s WASM=1" )

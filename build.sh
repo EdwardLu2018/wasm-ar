@@ -20,4 +20,4 @@ else
     make
 fi
 
-cp wasm_ar.* ..
+cp wasm_ar.* ../html

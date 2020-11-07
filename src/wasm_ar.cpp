@@ -21,13 +21,17 @@ bool initialized = false;
 Ptr<ORB> orb = NULL;
 Ptr<BFMatcher> matcher = NULL;
 
-Mat H, framePrev;
+Mat refGray, refDescr;
+vector<KeyPoint> refKeyPts;
+
+Mat H;
+vector<Point2f> corners(4);
+
+Mat framePrev;
 int numMatches = 0;
 vector<Point2f> framePts;
 
-Mat refGray, refDescr;
-vector<KeyPoint> refKeyPts;
-vector<Point2f> corners(4);
+double *output = new double[17]; // 9 from homography matrix, 8 from warped corners
 
 static Mat im_gray(uchar data[], size_t cols, size_t rows) {
     uint32_t idx;
@@ -50,12 +54,12 @@ static Mat im_gray(uchar data[], size_t cols, size_t rows) {
     return Mat(rows, cols, CV_8UC1, gray);
 }
 
-static bool homographyValid(Mat H) {
+static inline bool homographyValid(Mat H) {
     const double det = H.at<double>(0,0)*H.at<double>(1,1)-H.at<double>(1,0)*H.at<double>(0,1);
     return 1/N < fabs(det) && fabs(det) < N;
 }
 
-static void fill_output(Mat H, double *output) {
+static inline void fill_output(Mat H) {
     vector<Point2f> warped(4);
     perspectiveTransform(corners, warped, H);
 
@@ -79,8 +83,12 @@ static void fill_output(Mat H, double *output) {
     output[16] = warped[3].y;
 }
 
+static inline void clear_output() {
+    for (int i = 0; i < 17; i++) output[i] = 0;
+}
+
 EMSCRIPTEN_KEEPALIVE
-void initAR(uchar refData[], size_t refCols, size_t refRows) {
+int initAR(uchar refData[], size_t refCols, size_t refRows) {
     orb = ORB::create(MAX_FEATURES);
     matcher = BFMatcher::create();
 
@@ -94,17 +102,18 @@ void initAR(uchar refData[], size_t refCols, size_t refRows) {
 
     initialized = true;
     cout << "Ready!" << endl;
+
+    return 0;
 }
 
 EMSCRIPTEN_KEEPALIVE
 double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
-    // 9 from homography matrix, 8 from warped corners
-    double *output = new double[17];
-
     if (!initialized) {
         cout << "Reference image not found. AR is unintialized!" << endl;
-        return output;
+        return NULL;
     }
+
+    clear_output();
 
     Mat frameCurr = im_gray(frameData, frameCols, frameRows);
 
@@ -130,7 +139,7 @@ double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
         H = findHomography(refPts, framePts, RANSAC);
         if (homographyValid(H)) {
             numMatches = framePts.size();
-            fill_output(H, output);
+            fill_output(H);
         }
     }
 
@@ -141,18 +150,17 @@ double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
 
 EMSCRIPTEN_KEEPALIVE
 double *track(uchar frameData[], size_t frameCols, size_t frameRows) {
-    // 9 from homography matrix, 8 from warped corners
-    double *output = new double[17];
-
     if (!initialized) {
         cout << "Reference image not found. AR is unintialized!" << endl;
-        return output;
+        return NULL;
     }
 
     if (framePrev.empty()) {
         cout << "Tracking is uninitialized!" << endl;
-        return output;
+        return NULL;
     }
+
+    clear_output();
 
     Mat frameCurr = im_gray(frameData, frameCols, frameRows);
     // GaussianBlur(frameCurr, frameCurr, Size(5,5), 2);
@@ -183,7 +191,7 @@ double *track(uchar frameData[], size_t frameCols, size_t frameRows) {
         framePts = goodPtsNew;
 
         if (homographyValid(H)) {
-            fill_output(H, output);
+            fill_output(H);
         }
     }
 

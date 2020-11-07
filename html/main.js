@@ -1,10 +1,18 @@
 let width = Math.min(window.innerWidth, window.innerHeight);
 
+let frames = 0;
+
 function initStats() {
     window.stats = new Stats();
     window.stats.showPanel(0);
     document.getElementById("stats").appendChild(stats.domElement);
 }
+
+function toggleTracking() {
+    window.shouldTrack = !window.shouldTrack;
+}
+window.addEventListener("touchstart", toggleTracking);
+window.addEventListener("mousedown", toggleTracking);
 
 function setVideoStyle(elem) {
     elem.style.position = "absolute";
@@ -87,7 +95,7 @@ function clearOverlayCtx(overlayCtx) {
     );
 }
 
-function drawBbox(corners) {
+function drawCorners(corners) {
     if (!window.overlayCanv) return;
     const overlayCtx = window.overlayCanv.getContext("2d");
     clearOverlayCtx(overlayCtx);
@@ -106,26 +114,27 @@ function drawBbox(corners) {
     overlayCtx.stroke();
 }
 
-window.addEventListener("touchstart", function() {
-    window.tracker.shouldTrack = !window.tracker.shouldTrack;
-});
-
-window.addEventListener("mousedown", function() {
-    window.tracker.shouldTrack = !window.tracker.shouldTrack;
-});
-
 function processVideo() {
     window.stats.begin();
 
     const frame = getFrame();
-    const [valid, h, warped] = window.tracker.track(frame, window.width, window.height);
-    if (valid) {
-        window.tracker.performTransform(h, window.arElem);
-        drawBbox(warped);
-    }
-    else {
-        clearOverlayCtx(window.overlayCanv.getContext("2d"));
-        window.arElem.style.display = "none";
+    if (window.shouldTrack) {
+        let res;
+        if (++frames % 30 == 0) { // reset tracking every 30 frames in case tracking gets lost
+            res = window.tracker.resetTracking(frame, window.width, window.height);
+        }
+        else {
+            res = window.tracker.track(frame, window.width, window.height);
+        }
+
+        if (res.valid) {
+            window.tracker.transformElem(res.H, window.arElem);
+            drawCorners(res.corners);
+        }
+        else {
+            clearOverlayCtx(window.overlayCanv.getContext("2d"));
+            window.arElem.style.display = "none";
+        }
     }
 
     window.stats.end();
@@ -147,9 +156,11 @@ window.onload = function() {
         initStats();
         setupVideo(true, true, () => {
             window.tracker.init(createRefIm(), refIm.width, refIm.height);
+
             window.arElem = document.getElementById("arElem");
             window.arElem.style["transform-origin"] = "top left"; // default is center
             window.arElem.style.zIndex = 1;
+
             requestAnimationFrame(processVideo);
         });
     });

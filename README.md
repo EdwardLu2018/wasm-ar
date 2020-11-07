@@ -8,11 +8,9 @@ Demo on laptop                    |  Demo on iPhone
 
 Try it out here (tap the screen to enable and disable tracking):
 
-https://edwardlu2018.github.io/wasm-ar/
+[https://edwardlu2018.github.io/wasm-ar/](https://edwardlu2018.github.io/wasm-ar/)
 
-Reference image:
-
-https://github.com/EdwardLu2018/wasm-ar/blob/master/ref.jpg?raw=1
+Reference image [here](https://github.com/EdwardLu2018/wasm-ar/blob/master/ref.jpg?raw=1)
 
 ## Pipeline
 
@@ -36,7 +34,7 @@ python ./platforms/js/build_js.py build_wasm --build_wasm
 ```
 The python script will build the static and the WASM lib in the build_wasm folder.
 
-Additional instructions to build OpenCV with WebAssembly support here: https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html
+Additional instructions to build OpenCV with WebAssembly support [here](https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html).
 
 Then, run:
 ```
