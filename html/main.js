@@ -120,7 +120,7 @@ function processVideo() {
     const frame = getFrame();
     if (window.shouldTrack) {
         let res;
-        if (++frames % 30 == 0) { // reset tracking every 30 frames in case tracking gets lost
+        if (++frames % 60 == 0) { // reset tracking every 60 frames in case tracking gets lost
             res = window.tracker.resetTracking(frame, window.width, window.height);
         }
         else {
