@@ -1,0 +1,60 @@
+html,
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+#arElem {
+    position: absolute;
+    width: 200px;
+    height: 285px;
+    display: none;
+    border: 1px solid black;
+    background: white;
+}
+
+#instructions {
+    visibility: hidden;
+    left: 50%;
+    width: 200px;
+    margin-left: -100px;
+    background-color: #eee;
+    text-align: center;
+    border-radius: 10px;
+    padding: 15px;
+    position: fixed;
+    z-index: 9999;
+    bottom: 20px;
+    font-size: 15px;
+    word-wrap: break-word;
+}
+
+#instructions.show {
+    visibility: visible;
+    -webkit-animation: fadein 1.0s;
+    animation: fadein 1.0s;
+}
+
+#instructions.hide {
+    -webkit-animation: fadeout 1.0s;
+    animation: fadeout 1.0s;
+}
+
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0; visibility: hidden;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0; visibility: hidden;}

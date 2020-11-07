@@ -5,35 +5,22 @@
         <meta http-equiv="X-UA-Compatible" content="chrome=1">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+        <link rel="stylesheet" href="style.css">
+
         <script type="text/javascript" src="https://threejs.org/examples/js/libs/stats.min.js"></script>
 
         <script type="text/javascript" src="wasm_ar.js"></script>
         <script type="text/javascript" src="imageTracker.js"></script>
         <script type="text/javascript" src="main.js"></script>
 
-        <style>
-            html,
-            body {
-                margin: 0;
-                overflow: hidden;
-            }
-
-            #arElem {
-                position: absolute;
-                width: 200px;
-                height: 285px;
-                display: none;
-                border: 1px solid black;
-                background: white;
-            }
-        </style>
-
         <title>WASM-AR</title>
     </head>
+
     <body>
         <div id="stats"></div>
         <img id="refIm" src="ref.jpg" width=200 height=285 style="display:none;">
         <!-- <img id="arElem"  src="ar.jpg"  width=200 height=285 style="display:none;border:1px solid black;"> -->
         <iframe id="arElem" src="https://en.wikipedia.org/wiki/Homography"></iframe>
+        <div id="instructions">Tap on the screen to enable and disable tracking!</div>
     </body>
 </html>

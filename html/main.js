@@ -25,6 +25,7 @@ function setupVideo(displayVid, displayOverlay, setupCallback) {
     window.videoElem.setAttribute("autoplay", "");
     window.videoElem.setAttribute("muted", "");
     window.videoElem.setAttribute("playsinline", "");
+    // document.body.appendChild(window.videoElem);
 
     navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
@@ -120,7 +121,7 @@ function processVideo() {
     const frame = getFrame();
     if (window.shouldTrack) {
         let res;
-        if (++frames % 60 == 0) { // reset tracking every 60 frames in case tracking gets lost
+        if (++frames % 120 == 0) { // reset tracking every 60 frames in case tracking gets lost
             res = window.tracker.resetTracking(frame, window.width, window.height);
         }
         else {
@@ -160,6 +161,10 @@ window.onload = function() {
             window.arElem = document.getElementById("arElem");
             window.arElem.style["transform-origin"] = "top left"; // default is center
             window.arElem.style.zIndex = 1;
+
+            const instructionsPopUp = document.getElementById("instructions");
+            instructions.className = "show";
+            setTimeout(() => { instructions.className = "hide"; }, 5000);
 
             requestAnimationFrame(processVideo);
         });
