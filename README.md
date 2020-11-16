@@ -10,7 +10,7 @@ Try it out here (tap the screen to enable and disable tracking):
 
 [https://edwardlu2018.github.io/wasm-ar/](https://edwardlu2018.github.io/wasm-ar/)
 
-Reference image [here](https://github.com/EdwardLu2018/wasm-ar/blob/master/ref.jpg?raw=1).
+Reference image [here](https://github.com/EdwardLu2018/wasm-ar/blob/master/html/ref.jpg?raw=1).
 
 ## Pipeline
 

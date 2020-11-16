@@ -9,10 +9,10 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set( CMAKE_CXX_FLAGS_RELEASE "-O3" )
 
-include_directories( opencv/include )
 include_directories( opencv/build_wasm )
+include_directories( opencv/build_wasm/opencv/include )
 
-file( GLOB opencv_include_modules "opencv/modules/*/include" )
+file( GLOB opencv_include_modules "opencv/build_wasm/opencv/modules/*/include" )
 include_directories( ${opencv_include_modules} )
 
 file( GLOB opencv_js "opencv/build_wasm/lib/*.a" )
