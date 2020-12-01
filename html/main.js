@@ -1,4 +1,5 @@
-let width = Math.min(window.innerWidth, window.innerHeight);
+let width = window.innerWidth;
+let height = window.innerHeight;
 
 let frames = 0;
 
@@ -10,6 +11,15 @@ function initStats() {
 
 function toggleTracking() {
     window.shouldTrack = !window.shouldTrack;
+    if (window.arElem) {
+        if (window.shouldTrack) {
+            window.arElem.style.display = "block";
+        }
+        else {
+            clearOverlayCtx(window.overlayCanv.getContext("2d"));
+            window.arElem.style.display = "none";
+        }
+    }
 }
 window.addEventListener("touchstart", toggleTracking);
 window.addEventListener("mousedown", toggleTracking);
@@ -21,58 +31,60 @@ function setVideoStyle(elem) {
 }
 
 function setupVideo(displayVid, displayOverlay, setupCallback) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn("Browser does not support getUserMedia!");
+        return;
+    }
+
     window.videoElem = document.createElement("video");
     window.videoElem.setAttribute("autoplay", "");
     window.videoElem.setAttribute("muted", "");
     window.videoElem.setAttribute("playsinline", "");
     // document.body.appendChild(window.videoElem);
 
+    let vidWidth = window.orientation ? width : height;
+    let vidHeight = window.orientation ? height : width;
+
     navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-        audio: false
+        audio: false,
+        video: {
+            width: { ideal: vidWidth },
+            height: { ideal: vidHeight },
+            aspectRatio: { ideal: vidWidth / vidHeight },
+            facingMode: "environment",
+        }
     })
     .then(stream => {
-        const videoSettings = stream.getVideoTracks()[0].getSettings();
         window.videoElem.srcObject = stream;
-        window.videoElem.play();
+        window.videoElem.onloadedmetadata = e => {
+            window.videoElem.play();
+        };
     })
-    .catch(function(err) {
-        console.log("ERROR: " + err);
+    .catch(err => {
+        console.warn("ERROR: " + err);
     });
 
     window.videoCanv = document.createElement("canvas");
     setVideoStyle(window.videoCanv);
     window.videoCanv.style.zIndex = -1;
     if (displayVid) {
+        window.videoCanv.width = width;
+        window.videoCanv.height = height;
         document.body.appendChild(window.videoCanv);
     }
 
     if (displayOverlay) {
         window.overlayCanv = document.createElement("canvas");
         setVideoStyle(window.overlayCanv);
+        window.overlayCanv.width = width;
+        window.overlayCanv.height = height;
         window.overlayCanv.style.zIndex = 0;
         document.body.appendChild(window.overlayCanv);
     }
 
-    window.videoElem.addEventListener("canplay", function(e) {
-        window.width = width;
-        window.height = window.videoElem.videoHeight / (window.videoElem.videoWidth / window.width);
-
-        window.videoElem.setAttribute("width", window.width);
-        window.videoElem.setAttribute("height", window.height);
-
-        window.videoCanv.width = window.width;
-        window.videoCanv.height = window.height;
-
-        if (displayOverlay) {
-            window.overlayCanv.width = window.width;
-            window.overlayCanv.height = window.height;
-        }
-
-        if (setupCallback != null) {
-            setupCallback();
-        }
-    }, false);
+    if (setupCallback != null) {
+        setupCallback();
+    }
 }
 
 function getFrame() {
@@ -80,19 +92,19 @@ function getFrame() {
     videoCanvCtx.drawImage(
         window.videoElem,
         0, 0,
-        window.width,
-        window.height
+        width,
+        height
     );
 
-    return videoCanvCtx.getImageData(0, 0, window.width, window.height).data;
+    return videoCanvCtx.getImageData(0, 0, width, height).data;
 }
 
 function clearOverlayCtx(overlayCtx) {
     if (!window.overlayCanv) return;
     overlayCtx.clearRect(
         0, 0,
-        window.width,
-        window.height
+        width,
+        height
     );
 }
 
@@ -121,11 +133,11 @@ function processVideo() {
     const frame = getFrame();
     if (window.shouldTrack) {
         let res;
-        if (++frames % 120 == 0) { // reset tracking every 60 frames in case tracking gets lost
-            res = window.tracker.resetTracking(frame, window.width, window.height);
+        if (++frames % 120 == 0) { // reset tracking every 120 frames in case tracking gets lost
+            res = window.tracker.resetTracking(frame, width, height);
         }
         else {
-            res = window.tracker.track(frame, window.width, window.height);
+            res = window.tracker.track(frame, width, height);
         }
 
         if (res.valid) {
