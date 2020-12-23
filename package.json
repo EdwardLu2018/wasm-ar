@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "./html/index.js",
   "scripts": {
-    "dev": "./build.sh; webpack --mode development --progress --watch",
+    "dev": "webpack --mode development --progress --watch",
     "build": "./build.sh; webpack --mode production; echo Built at `date`",
-    "serve": "./build.sh; webpack-dev-server --mode development"
+    "serve": "webpack-dev-server --mode development"
   },
   "keywords": [],
   "author": "Edward Lu (edwardlu2018)",

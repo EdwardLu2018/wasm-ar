@@ -1,7 +1,7 @@
 .DS_Store
 .vscode
 build
-emsdk_set_env.sh
+node_modules
 opencv
 emsdk
-node_modules
+emsdk_set_env.sh

@@ -97,20 +97,24 @@ var WasmAR =
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GrayScale", function() { return GrayScale; });
-/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js");
-/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js");
-/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/typeof.js");
+/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 var GrayScale = /*#__PURE__*/function () {
-  function GrayScale(video, width, height, canvas) {
-    _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, GrayScale);
+  function GrayScale(source, width, height, canvas) {
+    _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1___default()(this, GrayScale);
 
-    this._video = video;
+    this._source = source;
+    this._sourceType = _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default()(this._source);
     this._width = width;
     this._height = height;
-    this._canvas = canvas;
+    this._canvas = canvas ? canvas : document.createElement("canvas");
     this._canvas.width = width;
     this._canvas.height = height;
     this._flipImageProg = __webpack_require__(/*! ./shaders/flip-image.glsl */ "./html/shaders/flip-image.glsl");
@@ -119,7 +123,7 @@ var GrayScale = /*#__PURE__*/function () {
     this.initGL(this._flipImageProg, this._grayscaleProg);
   }
 
-  _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1___default()(GrayScale, [{
+  _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2___default()(GrayScale, [{
     key: "initGL",
     value: function initGL(vertShaderSource, fragShaderSource) {
       this.gl = this._canvas.getContext("webgl");
@@ -160,7 +164,7 @@ var GrayScale = /*#__PURE__*/function () {
     key: "getFrame",
     value: function getFrame() {
       if (!this.glReady) return undefined;
-      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this._video);
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this._source);
       this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
       this.gl.readPixels(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuf);
       var j = 0;
@@ -173,8 +177,8 @@ var GrayScale = /*#__PURE__*/function () {
       return this.grayBuf;
     }
   }, {
-    key: "start",
-    value: function start() {
+    key: "requestStream",
+    value: function requestStream() {
       var _this = this;
 
       return new Promise(function (resolve, reject) {
@@ -208,12 +212,12 @@ var GrayScale = /*#__PURE__*/function () {
             frameRate: 30
           }
         }).then(function (stream) {
-          _this._video.srcObject = stream;
+          _this._source.srcObject = stream;
 
-          _this._video.onloadedmetadata = function (e) {
-            _this._video.play();
+          _this._source.onloadedmetadata = function (e) {
+            _this._source.play();
 
-            resolve(_this._video, stream);
+            resolve(_this._source, stream);
           };
         })["catch"](function (err) {
           console.warn("ERROR: " + err);
@@ -422,7 +426,7 @@ function setupVideo(setupCallback) {
     setVideoStyle(canvas);
     document.body.appendChild(canvas);
     grayscale = new _grayscale_js__WEBPACK_IMPORTED_MODULE_0__["GrayScale"](video, width, height, canvas);
-    grayscale.start().then(function () {
+    grayscale.requestStream().then(function () {
       overlayCanv = document.createElement("canvas");
       setVideoStyle(overlayCanv);
       overlayCanv.id = "overlay";
@@ -466,8 +470,8 @@ function processVideo() {
   if (frame && shouldTrack) {
     var res;
 
-    if (++frames % 120 == 0) {
-      // reset tracking every 120 frames in case tracking gets lost
+    if (++frames % 60 == 0) {
+      // reset tracking every 60 frames in case tracking gets lost
       res = tracker.resetTracking(frame, width, height);
     } else {
       res = tracker.track(frame, width, height);
@@ -488,12 +492,8 @@ function processVideo() {
 
 function createRefIm() {
   refIm = document.getElementById("refIm");
-  var canv = document.createElement("canvas");
-  var ctx = canv.getContext("2d");
-  canv.width = refIm.width;
-  canv.height = refIm.height;
-  ctx.drawImage(refIm, 0, 0);
-  return ctx.getImageData(0, 0, refIm.width, refIm.height).data;
+  var refGrayscale = new _grayscale_js__WEBPACK_IMPORTED_MODULE_0__["GrayScale"](refIm, refIm.width, refIm.height, null);
+  return refGrayscale.getFrame();
 }
 
 window.onload = function () {
@@ -501,7 +501,6 @@ window.onload = function () {
     initStats();
     setupVideo().then(function () {
       tracker.init(createRefIm(), refIm.width, refIm.height);
-      console.log(refIm.width, refIm.height);
       arElem = document.getElementById("arElem");
       arElem.style["transform-origin"] = "top left"; // default is center
 
@@ -581,6 +580,33 @@ function _createClass(Constructor, protoProps, staticProps) {
 }
 
 module.exports = _createClass;
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/typeof.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/typeof.js ***!
+  \*******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    module.exports = _typeof = function _typeof(obj) {
+      return typeof obj;
+    };
+  } else {
+    module.exports = _typeof = function _typeof(obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof(obj);
+}
+
+module.exports = _typeof;
 
 /***/ })
 

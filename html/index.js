@@ -57,7 +57,7 @@ function setupVideo(setupCallback) {
         document.body.appendChild(canvas);
 
         grayscale = new GrayScale(video, width, height, canvas);
-        grayscale.start()
+        grayscale.requestStream()
             .then(() => {
                 overlayCanv = document.createElement("canvas");
                 setVideoStyle(overlayCanv);
@@ -109,7 +109,7 @@ function processVideo() {
     const frame = grayscale.getFrame();
     if (frame && shouldTrack) {
         let res;
-        if (++frames % 120 == 0) { // reset tracking every 120 frames in case tracking gets lost
+        if (++frames % 60 == 0) { // reset tracking every 60 frames in case tracking gets lost
             res = tracker.resetTracking(frame, width, height);
         }
         else {
@@ -133,14 +133,8 @@ function processVideo() {
 
 function createRefIm() {
     refIm = document.getElementById("refIm");
-
-    const canv = document.createElement("canvas");
-    const ctx = canv.getContext("2d");
-    canv.width = refIm.width;
-    canv.height = refIm.height;
-    ctx.drawImage(refIm, 0, 0);
-
-    return ctx.getImageData(0, 0, refIm.width, refIm.height).data;
+    let refGrayscale = new GrayScale(refIm, refIm.width, refIm.height, null);
+    return refGrayscale.getFrame();
 }
 
 window.onload = () => {
@@ -149,7 +143,6 @@ window.onload = () => {
         setupVideo()
             .then(() => {
                 tracker.init(createRefIm(), refIm.width, refIm.height);
-                console.log(refIm.width, refIm.height);
 
                 arElem = document.getElementById("arElem");
                 arElem.style["transform-origin"] = "top left"; // default is center

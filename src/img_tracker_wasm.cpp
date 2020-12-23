@@ -35,27 +35,6 @@ vector<Point2f> framePts;
 
 double *output = new double[17]; // 9 from homography matrix, 8 from warped corners
 
-static Mat im_gray(uchar data[], size_t cols, size_t rows) {
-    uint32_t idx;
-    uchar gray[rows][cols];
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            idx = (i * cols * 4) + j * 4;
-
-            // rgba to rgb
-            uchar r = data[idx];
-            uchar g = data[idx + 1];
-            uchar b = data[idx + 2];
-            // uchar a = data[idx + 3];
-
-            // turn frame image to gray scale
-            gray[i][j] = (0.30 * r) + (0.59 * g) + (0.11 * b);
-        }
-    }
-
-    return Mat(rows, cols, CV_8UC1, gray);
-}
-
 static inline bool homographyValid(Mat H) {
     const double det = H.at<double>(0,0)*H.at<double>(1,1)-H.at<double>(1,0)*H.at<double>(0,1);
     return 1/N < fabs(det) && fabs(det) < N;
@@ -94,14 +73,16 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
     orb = ORB::create(MAX_FEATURES);
     matcher = BFMatcher::create();
 
-    Mat refGray = im_gray(refData, refCols, refRows);
+    Mat refGray = Mat(refRows, refCols, CV_8UC1, refData);
+    flip(refGray, refGray, 0);
+
     orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr);
     // drawKeypointsOnCanv(refKeyPts, "overlay", "#FF0000");
 
-    corners[0] = cvPoint( 0, 0 );
-    corners[1] = cvPoint( refCols, 0 );
-    corners[2] = cvPoint( refCols, refRows );
-    corners[3] = cvPoint( 0, refRows );
+    corners[0] = cvPoint(0, 0);
+    corners[1] = cvPoint(refCols, 0);
+    corners[2] = cvPoint(refCols, refRows);
+    corners[3] = cvPoint(0, refRows);
 
     initialized = true;
     cout << "Ready!" << endl;
@@ -124,7 +105,7 @@ double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
     Mat frameDescr;
     vector<KeyPoint> frameKeyPts;
     orb->detectAndCompute(frameCurr, noArray(), frameKeyPts, frameDescr);
-    // drawKeypointsOnCanv(frameCurr, "overlay", "#FF0000");
+    // drawKeypointsOnCanv(frameKeyPts, "overlay", "#FF0000");
 
     vector<vector<DMatch>> knnMatches;
     matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
@@ -185,7 +166,7 @@ double *track(uchar frameData[], size_t frameCols, size_t frameRows) {
     if (!goodPtsNew.empty() && goodPtsNew.size() > numMatches/2) {
         Mat transform = estimateAffine2D(goodPtsOld, goodPtsNew);
 
-        // add row of [0,0,1] to transform to make it 3x3
+        // add row of {0,0,1} to transform to make it 3x3
         Mat row = Mat::zeros(1, 3, CV_64F);
         row.at<double>(0,2) = 1.0;
         transform.push_back(row);

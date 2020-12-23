@@ -1,10 +1,11 @@
 export class GrayScale
 {
-    constructor(video, width, height, canvas) {
-        this._video = video;
+    constructor(source, width, height, canvas) {
+        this._source = source;
+        this._sourceType = typeof this._source;
         this._width = width;
         this._height = height;
-        this._canvas = canvas;
+        this._canvas = canvas ? canvas : document.createElement("canvas");
         this._canvas.width = width;
         this._canvas.height = height;
 
@@ -74,7 +75,7 @@ export class GrayScale
     getFrame() {
         if (!this.glReady) return undefined;
 
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this._video);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this._source);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
 
         this.gl.readPixels(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuf);
@@ -88,7 +89,7 @@ export class GrayScale
         return this.grayBuf;
     }
 
-    start() {
+    requestStream() {
         return new Promise((resolve, reject) => {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
                 return reject();
@@ -118,10 +119,10 @@ export class GrayScale
                 }
             })
             .then(stream => {
-                this._video.srcObject = stream;
-                this._video.onloadedmetadata = e => {
-                    this._video.play();
-                    resolve(this._video, stream);
+                this._source.srcObject = stream;
+                this._source.onloadedmetadata = e => {
+                    this._source.play();
+                    resolve(this._source, stream);
                 };
             })
             .catch(err => {
