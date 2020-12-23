@@ -3,3 +3,4 @@ build
 emsdk_set_env.sh
 opencv
 emsdk
+node_modules

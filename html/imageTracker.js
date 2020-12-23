@@ -1,6 +1,6 @@
 const N = 10;
 
-class ImageTracker {
+export class ImageTracker {
     constructor(callback) {
         let _this = this;
         this.validPoints = false;

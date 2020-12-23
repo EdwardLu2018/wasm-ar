@@ -19,5 +19,3 @@ else
     cd build
     make
 fi
-
-cp wasm_ar.* ../html

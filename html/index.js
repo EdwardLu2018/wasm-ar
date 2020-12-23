@@ -1,3 +1,5 @@
+import { ImageTracker } from "./imageTracker.js"
+
 let width = window.innerWidth;
 let height = window.innerHeight;
 
