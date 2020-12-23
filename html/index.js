@@ -1,25 +1,36 @@
+import { GrayScale } from "./grayscale.js"
 import { ImageTracker } from "./imageTracker.js"
 
 let width = window.innerWidth;
 let height = window.innerHeight;
 
+let shouldTrack = false;
+
+let arElem = null;
+let refIm = null;
+
 let frames = 0;
+let stats = null;
+let grayscale = null;
+let tracker = null;
+
+let overlayCanv = null;
 
 function initStats() {
-    window.stats = new Stats();
-    window.stats.showPanel(0);
+    stats = new Stats();
+    stats.showPanel(0);
     document.getElementById("stats").appendChild(stats.domElement);
 }
 
 function toggleTracking() {
-    window.shouldTrack = !window.shouldTrack;
-    if (window.arElem) {
-        if (window.shouldTrack) {
-            window.arElem.style.display = "block";
+    shouldTrack = !shouldTrack;
+    if (arElem) {
+        if (shouldTrack) {
+            // arElem.style.display = "block";
         }
         else {
-            clearOverlayCtx(window.overlayCanv.getContext("2d"));
-            window.arElem.style.display = "none";
+            clearOverlayCtx(overlayCanv.getContext("2d"));
+            arElem.style.display = "none";
         }
     }
 }
@@ -32,77 +43,40 @@ function setVideoStyle(elem) {
     elem.style.left = 0;
 }
 
-function setupVideo(displayVid, displayOverlay, setupCallback) {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.warn("Browser does not support getUserMedia!");
-        return;
-    }
+function setupVideo(setupCallback) {
+    return new Promise((resolve, reject) => {
+        let video = document.createElement("video");
+        video.setAttribute("autoplay", "");
+        video.setAttribute("muted", "");
+        video.setAttribute("playsinline", "");
+        // document.body.appendChild(video);
 
-    window.videoElem = document.createElement("video");
-    window.videoElem.setAttribute("autoplay", "");
-    window.videoElem.setAttribute("muted", "");
-    window.videoElem.setAttribute("playsinline", "");
-    // document.body.appendChild(window.videoElem);
+        let canvas = document.createElement("canvas");
+        canvas.style.zIndex = -1;
+        setVideoStyle(canvas);
+        document.body.appendChild(canvas);
 
-    let vidWidth = window.orientation ? width : height;
-    let vidHeight = window.orientation ? height : width;
-
-    navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-            width: { ideal: vidWidth },
-            height: { ideal: vidHeight },
-            aspectRatio: { ideal: vidWidth / vidHeight },
-            facingMode: "environment",
-        }
-    })
-    .then(stream => {
-        window.videoElem.srcObject = stream;
-        window.videoElem.onloadedmetadata = e => {
-            window.videoElem.play();
-        };
-    })
-    .catch(err => {
-        console.warn("ERROR: " + err);
+        grayscale = new GrayScale(video, width, height, canvas);
+        grayscale.start()
+            .then(() => {
+                overlayCanv = document.createElement("canvas");
+                setVideoStyle(overlayCanv);
+                overlayCanv.id = "hello";
+                overlayCanv.width = width;
+                overlayCanv.height = height;
+                overlayCanv.style.zIndex = 0;
+                document.body.appendChild(overlayCanv);
+                resolve();
+            })
+            .catch(err => {
+                console.warn("ERROR: " + err);
+                reject();
+            });
     });
-
-    window.videoCanv = document.createElement("canvas");
-    setVideoStyle(window.videoCanv);
-    window.videoCanv.style.zIndex = -1;
-    if (displayVid) {
-        window.videoCanv.width = width;
-        window.videoCanv.height = height;
-        document.body.appendChild(window.videoCanv);
-    }
-
-    if (displayOverlay) {
-        window.overlayCanv = document.createElement("canvas");
-        setVideoStyle(window.overlayCanv);
-        window.overlayCanv.width = width;
-        window.overlayCanv.height = height;
-        window.overlayCanv.style.zIndex = 0;
-        document.body.appendChild(window.overlayCanv);
-    }
-
-    if (setupCallback != null) {
-        setupCallback();
-    }
-}
-
-function getFrame() {
-    const videoCanvCtx = window.videoCanv.getContext("2d");
-    videoCanvCtx.drawImage(
-        window.videoElem,
-        0, 0,
-        width,
-        height
-    );
-
-    return videoCanvCtx.getImageData(0, 0, width, height).data;
 }
 
 function clearOverlayCtx(overlayCtx) {
-    if (!window.overlayCanv) return;
+    if (!overlayCanv) return;
     overlayCtx.clearRect(
         0, 0,
         width,
@@ -111,8 +85,8 @@ function clearOverlayCtx(overlayCtx) {
 }
 
 function drawCorners(corners) {
-    if (!window.overlayCanv) return;
-    const overlayCtx = window.overlayCanv.getContext("2d");
+    if (!overlayCanv) return;
+    const overlayCtx = overlayCanv.getContext("2d");
     clearOverlayCtx(overlayCtx);
 
     overlayCtx.beginPath();
@@ -130,57 +104,62 @@ function drawCorners(corners) {
 }
 
 function processVideo() {
-    window.stats.begin();
+    stats.begin();
 
-    const frame = getFrame();
-    if (window.shouldTrack) {
+    const frame = grayscale.getFrame();
+    if (frame && shouldTrack) {
         let res;
         if (++frames % 120 == 0) { // reset tracking every 120 frames in case tracking gets lost
-            res = window.tracker.resetTracking(frame, width, height);
+            res = tracker.resetTracking(frame, width, height);
         }
         else {
-            res = window.tracker.track(frame, width, height);
+            res = tracker.track(frame, width, height);
         }
+        // const overlayCtx = overlayCanv.getContext("2d");
+        // clearOverlayCtx(overlayCtx);
+        // res = tracker.resetTracking(frame, width, height);
 
         if (res.valid) {
-            window.tracker.transformElem(res.H, window.arElem);
+            tracker.transformElem(res.H, arElem);
             drawCorners(res.corners);
         }
         else {
-            clearOverlayCtx(window.overlayCanv.getContext("2d"));
-            window.arElem.style.display = "none";
+            clearOverlayCtx(overlayCanv.getContext("2d"));
+            arElem.style.display = "none";
         }
     }
 
-    window.stats.end();
+    stats.end();
 
     requestAnimationFrame(processVideo);
 }
 
 function createRefIm() {
-    const refIm = document.getElementById("refIm");
+    refIm = document.getElementById("refIm");
     const canv = document.createElement("canvas");
     const ctx = canv.getContext("2d");
-    canv.width = refIm.width; canv.height = refIm.height;
+    canv.width = refIm.width;
+    canv.height = refIm.height;
     ctx.drawImage(refIm, 0, 0);
     return ctx.getImageData(0, 0, refIm.width, refIm.height).data;
 }
 
-window.onload = function() {
-    window.tracker = new ImageTracker(() => {
+window.onload = () => {
+    tracker = new ImageTracker(width, height, () => {
         initStats();
-        setupVideo(true, true, () => {
-            window.tracker.init(createRefIm(), refIm.width, refIm.height);
+        setupVideo()
+            .then(() => {
+                tracker.init(createRefIm(), refIm.width, refIm.height);
 
-            window.arElem = document.getElementById("arElem");
-            window.arElem.style["transform-origin"] = "top left"; // default is center
-            window.arElem.style.zIndex = 1;
+                arElem = document.getElementById("arElem");
+                arElem.style["transform-origin"] = "top left"; // default is center
+                arElem.style.zIndex = 1;
 
-            const instructionsPopUp = document.getElementById("instructions");
-            instructions.className = "show";
-            setTimeout(() => { instructions.className = "hide"; }, 5000);
+                const instructionsPopUp = document.getElementById("instructions");
+                instructions.className = "show";
+                setTimeout(() => { instructions.className = "hide"; }, 5000);
 
-            requestAnimationFrame(processVideo);
-        });
+                requestAnimationFrame(processVideo);
+            });
     });
 }

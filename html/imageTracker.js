@@ -1,8 +1,12 @@
 const N = 10;
 
 export class ImageTracker {
-    constructor(callback) {
+    constructor(width, height, callback) {
         let _this = this;
+
+        this._width = width;
+        this._height = height;
+
         this.validPoints = false;
         ARWasm().then(function (Module) {
             console.log("AR WASM module loaded.");
@@ -13,21 +17,19 @@ export class ImageTracker {
 
     onWasmInit(Module) {
         this._Module = Module;
+
         this._init = this._Module.cwrap("_Z6initARPhmm", "number", ["number", "number", "number"]);
         this._resetTracking = this._Module.cwrap("_Z13resetTrackingPhmm", "number", ["number", "number", "number"]);
         this._track = this._Module.cwrap("_Z5trackPhmm", "number", ["number", "number", "number"]);
+
+        this.imPtr = this._Module._malloc(this._width * this._height);
     }
 
-    createImBuf(imArr) {
-        const imPtr = this._Module._malloc(imArr.length);
-        this._Module.HEAPU8.set(imArr, imPtr);
-        return imPtr;
-    }
-
-    init(refImArr, width, height) {
-        const refImPtr = this.createImBuf(refImArr);
-        this._init(refImPtr, width, height);
-        this._Module._free(refImPtr);
+    init(refImArr, refImWidth, refImHeight) {
+        this.refImPtr = this._Module._malloc(refImArr.length);
+        this._Module.HEAPU8.set(refImArr, this.refImPtr);
+        this._init(this.refImPtr, refImWidth, refImHeight);
+        // this._Module._free(this.refImPtr);
     }
 
     validHomography(h) {
@@ -57,23 +59,23 @@ export class ImageTracker {
         };
     }
 
-    resetTracking(imArr, width, height) {
-        const imPtr = this.createImBuf(imArr);
-        const res = this._resetTracking(imPtr, width, height);
-        this._Module._free(imPtr);
+    resetTracking(imArr) {
+        this._Module.HEAPU8.set(imArr, this.imPtr);
+        const res = this._resetTracking(this.imPtr, this._width, this._height);
+        // this._Module._free(this.imPtr);
 
         const resObj = this.parseResult(res);
         this.validPoints = resObj.valid;
         return resObj;
     }
 
-    track(imArr, width, height) {
+    track(imArr) {
         if (!this.validPoints) {
-            return this.resetTracking(imArr, width, height);
+            return this.resetTracking(imArr, this._width, this._height);
         }
-        const imPtr = this.createImBuf(imArr);
-        const res = this._track(imPtr, width, height);
-        this._Module._free(imPtr);
+        this._Module.HEAPU8.set(imArr, this.imPtr);
+        const res = this._track(this.imPtr, this._width, this._height);
+        // this._Module._free(this.imPtr);
 
         const resObj = this.parseResult(res);
         this.validPoints = resObj.valid;

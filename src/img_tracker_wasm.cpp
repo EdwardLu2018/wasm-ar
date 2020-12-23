@@ -13,7 +13,7 @@ using namespace std;
 using namespace cv;
 
 #define GOOD_MATCH_RATIO    0.7f
-#define MAX_FEATURES        2000
+#define MAX_FEATURES        500
 #define N                   10
 
 bool initialized = false;
@@ -94,6 +94,15 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
 
     Mat refGray = im_gray(refData, refCols, refRows);
     orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr);
+    // cout << refKeyPts.size() << endl;
+    // for (int i = 0; i < refKeyPts.size(); i++) {
+    //     EM_ASM({
+    //         const overlayCanv = document.getElementById("hello");
+    //         const overlayCtx = overlayCanv.getContext("2d");
+    //         overlayCtx.fillStyle = "#FF0000";
+    //         overlayCtx.fillRect($0, $1, 1, 1);
+    //     }, refKeyPts[i].pt.x, refKeyPts[i].pt.y);
+    // }
 
     corners[0] = cvPoint( 0, 0 );
     corners[1] = cvPoint( refCols, 0 );
@@ -115,11 +124,21 @@ double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
 
     clear_output();
 
-    Mat frameCurr = im_gray(frameData, frameCols, frameRows);
+    Mat frameCurr = Mat(frameRows, frameCols, CV_8UC1, frameData);
+    flip(frameCurr, frameCurr, 0);
 
     Mat frameDescr;
     vector<KeyPoint> frameKeyPts;
     orb->detectAndCompute(frameCurr, noArray(), frameKeyPts, frameDescr);
+    // cout << frameKeyPts.size() << endl;
+    // for (int i = 0; i < frameKeyPts.size(); i++) {
+    //     EM_ASM({
+    //         const overlayCanv = document.getElementById("hello");
+    //         const overlayCtx = overlayCanv.getContext("2d");
+    //         overlayCtx.fillStyle = "#FF0000";
+    //         overlayCtx.fillRect($0, $1, 1, 1);
+    //     }, frameKeyPts[i].pt.x, frameKeyPts[i].pt.y);
+    // }
 
     vector<vector<DMatch>> knnMatches;
     matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
@@ -133,6 +152,7 @@ double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
             refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
         }
     }
+    // cout << framePts.size() << endl;
 
     // need at least 4 pts to define homography
     if (framePts.size() > 10) {
@@ -162,7 +182,8 @@ double *track(uchar frameData[], size_t frameCols, size_t frameRows) {
 
     clear_output();
 
-    Mat frameCurr = im_gray(frameData, frameCols, frameRows);
+    Mat frameCurr = Mat(frameRows, frameCols, CV_8UC1, frameData);
+    flip(frameCurr, frameCurr, 0);
     // GaussianBlur(frameCurr, frameCurr, Size(5,5), 2);
 
     vector<float> err;
@@ -176,7 +197,7 @@ double *track(uchar frameData[], size_t frameCols, size_t frameRows) {
         }
     }
 
-    if (!goodPtsNew.empty() && goodPtsNew.size() > 2*numMatches/3) {
+    if (!goodPtsNew.empty() && goodPtsNew.size() > numMatches/2) {
         Mat transform = estimateAffine2D(goodPtsOld, goodPtsNew);
 
         // add row of [0,0,1] to transform to make it 3x3
