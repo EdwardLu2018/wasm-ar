@@ -1,14 +1,14 @@
 {
-  "name": "WASM-AR",
+  "name": "wasm-ar",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./html/index.js",
   "scripts": {
-    "dev": "webpack --mode development --progress --watch",
-    "build": "webpack --mode production; echo Built at `date`",
-    "serve": "webpack-dev-server --mode development"
+    "dev": "./build.sh; webpack --mode development --progress --watch",
+    "build": "./build.sh; webpack --mode production; echo Built at `date`",
+    "serve": "./build.sh; webpack-dev-server --mode development"
   },
   "keywords": [],
-  "author": "Edward Lu",
+  "author": "Edward Lu (edwardlu2018)",
   "devDependencies": {
     "eslint": "^7.15.0",
     "eslint-config-google": "^0.14.0",
@@ -24,5 +24,5 @@
     "terser-webpack-plugin": "^2.3.6"
   },
   "dependencies": {},
-  "description": ""
+  "description": "Planar Homography Estimation and Image Tracking running in WASM"
 }

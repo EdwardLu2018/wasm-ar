@@ -1,4 +1,5 @@
 .DS_Store
+.vscode
 build
 emsdk_set_env.sh
 opencv

@@ -61,7 +61,7 @@ function setupVideo(setupCallback) {
             .then(() => {
                 overlayCanv = document.createElement("canvas");
                 setVideoStyle(overlayCanv);
-                overlayCanv.id = "hello";
+                overlayCanv.id = "overlay";
                 overlayCanv.width = width;
                 overlayCanv.height = height;
                 overlayCanv.style.zIndex = 0;
@@ -115,9 +115,6 @@ function processVideo() {
         else {
             res = tracker.track(frame, width, height);
         }
-        // const overlayCtx = overlayCanv.getContext("2d");
-        // clearOverlayCtx(overlayCtx);
-        // res = tracker.resetTracking(frame, width, height);
 
         if (res.valid) {
             tracker.transformElem(res.H, arElem);
@@ -136,11 +133,13 @@ function processVideo() {
 
 function createRefIm() {
     refIm = document.getElementById("refIm");
+
     const canv = document.createElement("canvas");
     const ctx = canv.getContext("2d");
     canv.width = refIm.width;
     canv.height = refIm.height;
     ctx.drawImage(refIm, 0, 0);
+
     return ctx.getImageData(0, 0, refIm.width, refIm.height).data;
 }
 
@@ -150,6 +149,7 @@ window.onload = () => {
         setupVideo()
             .then(() => {
                 tracker.init(createRefIm(), refIm.width, refIm.height);
+                console.log(refIm.width, refIm.height);
 
                 arElem = document.getElementById("arElem");
                 arElem.style["transform-origin"] = "top left"; // default is center

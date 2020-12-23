@@ -1,4 +1,4 @@
-# Planar Homography Estimation Running and Image Tracking in WASM
+# Planar Homography Estimation and Image Tracking Running in WASM
 
 Demo on laptop                    |  Demo on iPhone
 :--------------------------------:|:-------------------------:

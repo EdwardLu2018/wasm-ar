@@ -9,6 +9,8 @@
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/features2d.hpp>
 
+#include "utils.hpp"
+
 using namespace std;
 using namespace cv;
 
@@ -94,15 +96,7 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
 
     Mat refGray = im_gray(refData, refCols, refRows);
     orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr);
-    // cout << refKeyPts.size() << endl;
-    // for (int i = 0; i < refKeyPts.size(); i++) {
-    //     EM_ASM({
-    //         const overlayCanv = document.getElementById("hello");
-    //         const overlayCtx = overlayCanv.getContext("2d");
-    //         overlayCtx.fillStyle = "#FF0000";
-    //         overlayCtx.fillRect($0, $1, 1, 1);
-    //     }, refKeyPts[i].pt.x, refKeyPts[i].pt.y);
-    // }
+    // drawKeypointsOnCanv(refKeyPts, "overlay", "#FF0000");
 
     corners[0] = cvPoint( 0, 0 );
     corners[1] = cvPoint( refCols, 0 );
@@ -130,15 +124,7 @@ double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
     Mat frameDescr;
     vector<KeyPoint> frameKeyPts;
     orb->detectAndCompute(frameCurr, noArray(), frameKeyPts, frameDescr);
-    // cout << frameKeyPts.size() << endl;
-    // for (int i = 0; i < frameKeyPts.size(); i++) {
-    //     EM_ASM({
-    //         const overlayCanv = document.getElementById("hello");
-    //         const overlayCtx = overlayCanv.getContext("2d");
-    //         overlayCtx.fillStyle = "#FF0000";
-    //         overlayCtx.fillRect($0, $1, 1, 1);
-    //     }, frameKeyPts[i].pt.x, frameKeyPts[i].pt.y);
-    // }
+    // drawKeypointsOnCanv(frameCurr, "overlay", "#FF0000");
 
     vector<vector<DMatch>> knnMatches;
     matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
@@ -152,7 +138,6 @@ double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
             refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
         }
     }
-    // cout << framePts.size() << endl;
 
     // need at least 4 pts to define homography
     if (framePts.size() > 10) {
