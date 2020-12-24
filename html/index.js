@@ -26,7 +26,7 @@ function toggleTracking() {
     shouldTrack = !shouldTrack;
     if (arElem) {
         if (shouldTrack) {
-            // arElem.style.display = "block";
+            arElem.style.display = "block";
         }
         else {
             clearOverlayCtx(overlayCanv.getContext("2d"));
@@ -91,7 +91,7 @@ function drawCorners(corners) {
 
     overlayCtx.beginPath();
     overlayCtx.strokeStyle = "blue";
-    overlayCtx.lineWidth = 2;
+    overlayCtx.lineWidth = 5;
 
     // [x1,y1,x2,y2...]
     overlayCtx.moveTo(corners[0], corners[1]);

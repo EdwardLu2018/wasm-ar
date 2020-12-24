@@ -286,31 +286,18 @@ var ImageTracker = /*#__PURE__*/function () {
 
     }
   }, {
-    key: "validHomography",
-    value: function validHomography(h) {
-      var det = h[0] * h[4] - h[1] * h[3]; // check if determinant of top left 2x2 is valid
-
-      return 1 / N < Math.abs(det) && Math.abs(det) < N;
-    }
-  }, {
     key: "parseResult",
     value: function parseResult(ptr) {
-      var ptrF64 = ptr / Float64Array.BYTES_PER_ELEMENT;
-      var i = 0;
-      var h = [];
+      var valid = this._Module.getValue(ptr, "i8");
 
-      for (; i < 9; i++) {
-        h.push(this._Module.HEAPF64[ptrF64 + i]);
-      }
+      var dataPtr = this._Module.getValue(ptr + 4, "*");
 
-      var warped = [];
-
-      for (; i < 17; i++) {
-        warped.push(this._Module.HEAPF64[ptrF64 + i]);
-      }
-
+      var data = new Float64Array(this._Module.HEAPF64.buffer, dataPtr, 17);
+      var h = data.slice(0, 9);
+      var warped = data.slice(9, 17);
+      console.log(warped);
       return {
-        valid: this.validHomography(h),
+        valid: valid,
         H: h,
         corners: warped
       };
@@ -397,7 +384,8 @@ function toggleTracking() {
   shouldTrack = !shouldTrack;
 
   if (arElem) {
-    if (shouldTrack) {// arElem.style.display = "block";
+    if (shouldTrack) {
+      arElem.style.display = "block";
     } else {
       clearOverlayCtx(overlayCanv.getContext("2d"));
       arElem.style.display = "none";
@@ -453,7 +441,7 @@ function drawCorners(corners) {
   clearOverlayCtx(overlayCtx);
   overlayCtx.beginPath();
   overlayCtx.strokeStyle = "blue";
-  overlayCtx.lineWidth = 2; // [x1,y1,x2,y2...]
+  overlayCtx.lineWidth = 5; // [x1,y1,x2,y2...]
 
   overlayCtx.moveTo(corners[0], corners[1]);
   overlayCtx.lineTo(corners[2], corners[3]);

@@ -5093,6 +5093,8 @@ var dynCall_iiiiiijj = Module["dynCall_iiiiiijj"] = function() {
 
 Module["ccall"] = ccall;
 Module["cwrap"] = cwrap;
+Module["setValue"] = setValue;
+Module["getValue"] = getValue;
 
 var calledRun;
 

@@ -32,28 +32,17 @@ export class ImageTracker {
         // this._Module._free(this.refImPtr);
     }
 
-    validHomography(h) {
-        const det = h[0]*h[4]-h[1]*h[3]; // check if determinant of top left 2x2 is valid
-        return (1/N < Math.abs(det) && Math.abs(det) < N);
-    }
-
     parseResult(ptr) {
-        const ptrF64 = ptr / Float64Array.BYTES_PER_ELEMENT;
+        const valid = this._Module.getValue(ptr, "i8");
+        const dataPtr = this._Module.getValue(ptr + 4, "*");
+        let data = new Float64Array(this._Module.HEAPF64.buffer, dataPtr, 17);
 
-        let i = 0;
-
-        const h = [];
-        for (; i < 9; i++) {
-            h.push(this._Module.HEAPF64[ptrF64+i]);
-        }
-
-        const warped = [];
-        for (; i < 17; i++) {
-            warped.push(this._Module.HEAPF64[ptrF64+i]);
-        }
+        const h = data.slice(0, 9);
+        const warped = data.slice(9, 17);
+        console.log(warped)
 
         return {
-            valid: this.validHomography(h),
+            valid: valid,
             H: h,
             corners: warped
         };

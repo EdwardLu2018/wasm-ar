@@ -9,13 +9,15 @@
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/features2d.hpp>
 
+#include "img_tracker_wasm.hpp"
 #include "utils.hpp"
 
 using namespace std;
 using namespace cv;
 
 #define GOOD_MATCH_RATIO    0.7f
-#define MAX_FEATURES        500
+#define MAX_FEATURES        1000
+
 #define N                   10
 
 bool initialized = false;
@@ -33,39 +35,47 @@ Mat framePrev;
 int numMatches = 0;
 vector<Point2f> framePts;
 
-double *output = new double[17]; // 9 from homography matrix, 8 from warped corners
+output_t *create_output() {
+    output_t *output = new output_t;
+    output->data = new double[OUTPUT_SIZE];
+    return output;
+}
+
+output_t *output = create_output();
 
 static inline bool homographyValid(Mat H) {
     const double det = H.at<double>(0,0)*H.at<double>(1,1)-H.at<double>(1,0)*H.at<double>(0,1);
     return 1/N < fabs(det) && fabs(det) < N;
 }
 
-static inline void fill_output(Mat H) {
+static inline void fill_output(Mat H, bool valid) {
     vector<Point2f> warped(4);
     perspectiveTransform(corners, warped, H);
 
-    output[0] = H.at<double>(0,0);
-    output[1] = H.at<double>(0,1);
-    output[2] = H.at<double>(0,2);
-    output[3] = H.at<double>(1,0);
-    output[4] = H.at<double>(1,1);
-    output[5] = H.at<double>(1,2);
-    output[6] = H.at<double>(2,0);
-    output[7] = H.at<double>(2,1);
-    output[8] = H.at<double>(2,2);
+    output->valid = valid;
 
-    output[9]  = warped[0].x;
-    output[10] = warped[0].y;
-    output[11] = warped[1].x;
-    output[12] = warped[1].y;
-    output[13] = warped[2].x;
-    output[14] = warped[2].y;
-    output[15] = warped[3].x;
-    output[16] = warped[3].y;
+    output->data[0] = H.at<double>(0,0);
+    output->data[1] = H.at<double>(0,1);
+    output->data[2] = H.at<double>(0,2);
+    output->data[3] = H.at<double>(1,0);
+    output->data[4] = H.at<double>(1,1);
+    output->data[5] = H.at<double>(1,2);
+    output->data[6] = H.at<double>(2,0);
+    output->data[7] = H.at<double>(2,1);
+    output->data[8] = H.at<double>(2,2);
+
+    output->data[9]  = warped[0].x;
+    output->data[10] = warped[0].y;
+    output->data[11] = warped[1].x;
+    output->data[12] = warped[1].y;
+    output->data[13] = warped[2].x;
+    output->data[14] = warped[2].y;
+    output->data[15] = warped[3].x;
+    output->data[16] = warped[3].y;
 }
 
 static inline void clear_output() {
-    for (int i = 0; i < 17; i++) output[i] = 0;
+    memset(output, 0, sizeof(output_t));
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -79,10 +89,10 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
     orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr);
     // drawKeypointsOnCanv(refKeyPts, "overlay", "#FF0000");
 
-    corners[0] = cvPoint(0, 0);
-    corners[1] = cvPoint(refCols, 0);
-    corners[2] = cvPoint(refCols, refRows);
-    corners[3] = cvPoint(0, refRows);
+    corners[0] = cvPoint( 0, 0 );
+    corners[1] = cvPoint( refCols, 0 );
+    corners[2] = cvPoint( refCols, refRows );
+    corners[3] = cvPoint( 0, refRows );
 
     initialized = true;
     cout << "Ready!" << endl;
@@ -91,7 +101,7 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
+output_t *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
     if (!initialized) {
         cout << "Reference image not found. AR is unintialized!" << endl;
         return NULL;
@@ -121,11 +131,12 @@ double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
     }
 
     // need at least 4 pts to define homography
-    if (framePts.size() > 10) {
+    if (framePts.size() > 15) {
         H = findHomography(refPts, framePts, RANSAC);
-        if (homographyValid(H)) {
+        bool valid;
+        if ( (valid = homographyValid(H)) ) {
             numMatches = framePts.size();
-            fill_output(H);
+            fill_output(H, valid);
         }
     }
 
@@ -135,7 +146,7 @@ double *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
 }
 
 EMSCRIPTEN_KEEPALIVE
-double *track(uchar frameData[], size_t frameCols, size_t frameRows) {
+output_t *track(uchar frameData[], size_t frameCols, size_t frameRows) {
     if (!initialized) {
         cout << "Reference image not found. AR is unintialized!" << endl;
         return NULL;
@@ -177,8 +188,9 @@ double *track(uchar frameData[], size_t frameCols, size_t frameRows) {
         // set old points to new points
         framePts = goodPtsNew;
 
-        if (homographyValid(H)) {
-            fill_output(H);
+        bool valid;
+        if ( (valid = homographyValid(H)) ) {
+            fill_output(H, valid);
         }
     }
 
