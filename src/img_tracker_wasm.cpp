@@ -131,7 +131,7 @@ output_t *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
     }
 
     // need at least 4 pts to define homography
-    if (framePts.size() > 15) {
+    if (framePts.size() > 20) {
         H = findHomography(refPts, framePts, RANSAC);
         bool valid;
         if ( (valid = homographyValid(H)) ) {

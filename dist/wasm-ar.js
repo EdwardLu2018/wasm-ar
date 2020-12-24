@@ -282,8 +282,7 @@ var ImageTracker = /*#__PURE__*/function () {
 
       this._Module.HEAPU8.set(refImArr, this.refImPtr);
 
-      this._init(this.refImPtr, refImWidth, refImHeight); // this._Module._free(this.refImPtr);
-
+      this._init(this.refImPtr, refImWidth, refImHeight);
     }
   }, {
     key: "parseResult",
@@ -295,7 +294,6 @@ var ImageTracker = /*#__PURE__*/function () {
       var data = new Float64Array(this._Module.HEAPF64.buffer, dataPtr, 17);
       var h = data.slice(0, 9);
       var warped = data.slice(9, 17);
-      console.log(warped);
       return {
         valid: valid,
         H: h,
@@ -307,8 +305,7 @@ var ImageTracker = /*#__PURE__*/function () {
     value: function resetTracking(imArr) {
       this._Module.HEAPU8.set(imArr, this.imPtr);
 
-      var res = this._resetTracking(this.imPtr, this._width, this._height); // this._Module._free(this.imPtr);
-
+      var res = this._resetTracking(this.imPtr, this._width, this._height);
 
       var resObj = this.parseResult(res);
       this.validPoints = resObj.valid;
@@ -323,8 +320,7 @@ var ImageTracker = /*#__PURE__*/function () {
 
       this._Module.HEAPU8.set(imArr, this.imPtr);
 
-      var res = this._track(this.imPtr, this._width, this._height); // this._Module._free(this.imPtr);
-
+      var res = this._track(this.imPtr, this._width, this._height);
 
       var resObj = this.parseResult(res);
       this.validPoints = resObj.valid;
@@ -441,7 +437,7 @@ function drawCorners(corners) {
   clearOverlayCtx(overlayCtx);
   overlayCtx.beginPath();
   overlayCtx.strokeStyle = "blue";
-  overlayCtx.lineWidth = 5; // [x1,y1,x2,y2...]
+  overlayCtx.lineWidth = 3; // [x1,y1,x2,y2...]
 
   overlayCtx.moveTo(corners[0], corners[1]);
   overlayCtx.lineTo(corners[2], corners[3]);
@@ -457,13 +453,12 @@ function processVideo() {
 
   if (frame && shouldTrack) {
     var res;
-
-    if (++frames % 60 == 0) {
-      // reset tracking every 60 frames in case tracking gets lost
-      res = tracker.resetTracking(frame, width, height);
-    } else {
-      res = tracker.track(frame, width, height);
-    }
+    res = tracker.track(frame, width, height); // if (++frames % 120 == 0) { // reset tracking every 120 frames in case tracking gets lost
+    //     res = tracker.resetTracking(frame, width, height);
+    // }
+    // else {
+    //    res = tracker.track(frame, width, height);
+    // }
 
     if (res.valid) {
       tracker.transformElem(res.H, arElem);

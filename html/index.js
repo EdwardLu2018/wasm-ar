@@ -91,7 +91,7 @@ function drawCorners(corners) {
 
     overlayCtx.beginPath();
     overlayCtx.strokeStyle = "blue";
-    overlayCtx.lineWidth = 5;
+    overlayCtx.lineWidth = 3;
 
     // [x1,y1,x2,y2...]
     overlayCtx.moveTo(corners[0], corners[1]);
@@ -109,12 +109,13 @@ function processVideo() {
     const frame = grayscale.getFrame();
     if (frame && shouldTrack) {
         let res;
-        if (++frames % 60 == 0) { // reset tracking every 60 frames in case tracking gets lost
-            res = tracker.resetTracking(frame, width, height);
-        }
-        else {
-            res = tracker.track(frame, width, height);
-        }
+        res = tracker.track(frame, width, height);
+        // if (++frames % 120 == 0) { // reset tracking every 120 frames in case tracking gets lost
+        //     res = tracker.resetTracking(frame, width, height);
+        // }
+        // else {
+        //    res = tracker.track(frame, width, height);
+        // }
 
         if (res.valid) {
             tracker.transformElem(res.H, arElem);

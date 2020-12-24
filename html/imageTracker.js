@@ -29,7 +29,6 @@ export class ImageTracker {
         this.refImPtr = this._Module._malloc(refImArr.length);
         this._Module.HEAPU8.set(refImArr, this.refImPtr);
         this._init(this.refImPtr, refImWidth, refImHeight);
-        // this._Module._free(this.refImPtr);
     }
 
     parseResult(ptr) {
@@ -39,7 +38,6 @@ export class ImageTracker {
 
         const h = data.slice(0, 9);
         const warped = data.slice(9, 17);
-        console.log(warped)
 
         return {
             valid: valid,
@@ -51,7 +49,6 @@ export class ImageTracker {
     resetTracking(imArr) {
         this._Module.HEAPU8.set(imArr, this.imPtr);
         const res = this._resetTracking(this.imPtr, this._width, this._height);
-        // this._Module._free(this.imPtr);
 
         const resObj = this.parseResult(res);
         this.validPoints = resObj.valid;
@@ -64,7 +61,6 @@ export class ImageTracker {
         }
         this._Module.HEAPU8.set(imArr, this.imPtr);
         const res = this._track(this.imPtr, this._width, this._height);
-        // this._Module._free(this.imPtr);
 
         const resObj = this.parseResult(res);
         this.validPoints = resObj.valid;
