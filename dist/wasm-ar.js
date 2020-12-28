@@ -167,11 +167,17 @@ var GrayScale = /*#__PURE__*/function () {
       this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this._source);
       this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
       this.gl.readPixels(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuf);
-      var j = 0;
+      var j = this.grayBuf.length - this.gl.drawingBufferWidth - 1,
+          k = 0;
 
       for (var i = 0; i < this.pixelBuf.length; i += 4) {
-        this.grayBuf[j] = this.pixelBuf[i];
-        j++;
+        this.grayBuf[j + k] = this.pixelBuf[i];
+        k++;
+
+        if (k == this.gl.drawingBufferWidth) {
+          j -= this.gl.drawingBufferWidth;
+          k = 0;
+        }
       }
 
       return this.grayBuf;
@@ -382,6 +388,7 @@ function toggleTracking() {
   if (arElem) {
     if (shouldTrack) {
       arElem.style.display = "block";
+      if (tracker) tracker.validPoints = false;
     } else {
       clearOverlayCtx(overlayCanv.getContext("2d"));
       arElem.style.display = "none";
