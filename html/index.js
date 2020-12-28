@@ -27,6 +27,7 @@ function toggleTracking() {
     if (arElem) {
         if (shouldTrack) {
             arElem.style.display = "block";
+            if (tracker) tracker.validPoints = false;
         }
         else {
             clearOverlayCtx(overlayCanv.getContext("2d"));

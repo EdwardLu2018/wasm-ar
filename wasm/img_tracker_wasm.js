@@ -1097,9 +1097,9 @@ function updateGlobalBufferAndViews(buf) {
   Module['HEAPF64'] = HEAPF64 = new Float64Array(buf);
 }
 
-var STACK_BASE = 5533328,
+var STACK_BASE = 5533536,
     STACKTOP = STACK_BASE,
-    STACK_MAX = 290448;
+    STACK_MAX = 290656;
 
 var TOTAL_STACK = 5242880;
 
@@ -1464,7 +1464,7 @@ var tempI64;
 // === Body ===
 
 var ASM_CONSTS = {
-  
+  3032: function($0, $1, $2, $3) {const canvasId = UTF8ToString($0); const color = UTF8ToString($1); const canvas = document.getElementById(canvasId); const ctx = canvas.getContext("2d"); ctx.fillStyle = color; ctx.fillRect($2, $3, 1, 1);}
 };
 
 
@@ -4182,6 +4182,11 @@ var ASM_CONSTS = {
       return 0;
     }
 
+  function _emscripten_asm_const_int(code, sigPtr, argbuf) {
+      var args = readAsmConstArgs(sigPtr, argbuf);
+      return ASM_CONSTS[code].apply(null, args);
+    }
+
   function _emscripten_memcpy_big(dest, src, num) {
       HEAPU8.copyWithin(dest, src, src + num);
     }
@@ -4880,6 +4885,24 @@ var ASM_CONSTS = {
       setErrNo(28);
       return -1;
     }
+
+  var readAsmConstArgsArray=[];
+  function readAsmConstArgs(sigPtr, buf) {
+      readAsmConstArgsArray.length = 0;
+      var ch;
+      // Most arguments are i32s, so shift the buffer pointer so it is a plain
+      // index into HEAP32.
+      buf >>= 2;
+      while (ch = HEAPU8[sigPtr++]) {
+        // A double takes two 32-bit slots, and must also be aligned - the backend
+        // will emit padding to avoid that.
+        var double = ch < 105;
+        if (double && (buf & 1)) buf++;
+        readAsmConstArgsArray.push(double ? HEAPF64[buf++ >> 1] : HEAP32[buf]);
+        ++buf;
+      }
+      return readAsmConstArgsArray;
+    }
 var FSNode = /** @constructor */ function(parent, name, mode, rdev) {
     if (!parent) {
       parent = this;  // root node sets parent to itself
@@ -4967,6 +4990,7 @@ var asmLibraryArg = {
   "__sys_read": ___sys_read,
   "abort": _abort,
   "clock_gettime": _clock_gettime,
+  "emscripten_asm_const_int": _emscripten_asm_const_int,
   "emscripten_memcpy_big": _emscripten_memcpy_big,
   "emscripten_resize_heap": _emscripten_resize_heap,
   "environ_get": _environ_get,

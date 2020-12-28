@@ -84,7 +84,6 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
     matcher = BFMatcher::create();
 
     Mat refGray = Mat(refRows, refCols, CV_8UC1, refData);
-    flip(refGray, refGray, 0);
 
     orb->detectAndCompute(refGray, noArray(), refKeyPts, refDescr);
     // drawKeypointsOnCanv(refKeyPts, "overlay", "#FF0000");
@@ -110,7 +109,6 @@ output_t *resetTracking(uchar frameData[], size_t frameCols, size_t frameRows) {
     clear_output();
 
     Mat frameCurr = Mat(frameRows, frameCols, CV_8UC1, frameData);
-    flip(frameCurr, frameCurr, 0);
 
     Mat frameDescr;
     vector<KeyPoint> frameKeyPts;
@@ -160,7 +158,6 @@ output_t *track(uchar frameData[], size_t frameCols, size_t frameRows) {
     clear_output();
 
     Mat frameCurr = Mat(frameRows, frameCols, CV_8UC1, frameData);
-    flip(frameCurr, frameCurr, 0);
     // GaussianBlur(frameCurr, frameCurr, Size(5,5), 2);
 
     vector<float> err;

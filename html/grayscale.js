@@ -80,12 +80,15 @@ export class GrayScale
 
         this.gl.readPixels(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuf);
 
-        let j = 0;
+        let j = this.grayBuf.length - this.gl.drawingBufferWidth - 1, k = 0;
         for (let i = 0; i < this.pixelBuf.length; i += 4) {
-            this.grayBuf[j] = this.pixelBuf[i];
-            j++;
+            this.grayBuf[j+k] = this.pixelBuf[i];
+            k++;
+            if (k == this.gl.drawingBufferWidth) {
+                j -= this.gl.drawingBufferWidth;
+                k = 0;
+            }
         }
-
         return this.grayBuf;
     }
 

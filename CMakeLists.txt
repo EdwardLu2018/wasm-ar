@@ -9,7 +9,7 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 set( CMAKE_CXX_FLAGS_RELEASE "-g -Wall -O3" )
 
-set( WASM ../wasm )
+set( WASM ${CMAKE_SOURCE_DIR}/wasm )
 file( MAKE_DIRECTORY ${WASM} )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${WASM} )
 

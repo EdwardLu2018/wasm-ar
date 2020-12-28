@@ -12,7 +12,6 @@ void drawKeypointsOnCanv(vector<KeyPoint> keyPts, const char *canvasId, const ch
         EM_ASM({
             const canvasId = UTF8ToString($0);
             const color = UTF8ToString($1);
-            console.log(canvasId);
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext("2d");
             ctx.fillStyle = color;
