@@ -8,7 +8,7 @@
     "serve": "webpack-dev-server --mode development"
   },
   "keywords": [],
-  "author": "Edward Lu (edwardlu2018)",
+  "author": "Edward Lu (EdwardLu2018)",
   "devDependencies": {
     "eslint": "^7.15.0",
     "eslint-config-google": "^0.14.0",

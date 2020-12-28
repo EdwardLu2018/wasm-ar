@@ -19,3 +19,5 @@ else
     cd build
     make
 fi
+
+cd ..

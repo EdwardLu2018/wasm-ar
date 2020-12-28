@@ -166,8 +166,9 @@ var GrayScale = /*#__PURE__*/function () {
       if (!this.glReady) return undefined;
       this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this._source);
       this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
-      this.gl.readPixels(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuf);
-      var j = this.grayBuf.length - this.gl.drawingBufferWidth - 1,
+      this.gl.readPixels(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuf); // webgl returns flipped image, so we will need to flip image buffer to return the correct orientation
+
+      var j = this.grayBuf.length - this.gl.drawingBufferWidth,
           k = 0;
 
       for (var i = 0; i < this.pixelBuf.length; i += 4) {
