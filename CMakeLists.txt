@@ -14,7 +14,7 @@ file( MAKE_DIRECTORY ${WASM} )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${WASM} )
 
 set( BUILD_WASM opencv/build_wasm )
-set( SRC src )
+set( SRC_DIR src )
 
 include_directories( ${BUILD_WASM} )
 include_directories( ${BUILD_WASM}/opencv/include )
@@ -24,10 +24,10 @@ include_directories( ${opencv_include_modules} )
 
 file( GLOB opencv_js "${BUILD_WASM}/lib/*.a" )
 
-include_directories( ${SRC} )
-file( GLOB WASMAR_SRCS ${SRC}/*.cpp )
+include_directories( ${SRC_DIR} )
+file( GLOB WASMAR_SRCS ${SRC_DIR}/*.cpp )
 
-add_executable( img_tracker_wasm src/img_tracker_wasm.cpp ${WASMAR_SRCS} )
+add_executable( img_tracker_wasm ${SRC_DIR}/img_tracker_wasm.cpp ${WASMAR_SRCS} )
 target_link_libraries( img_tracker_wasm ${opencv_js} )
 
 set_target_properties( img_tracker_wasm PROPERTIES LINK_FLAGS "-s EXPORT_NAME='ARWasm' -s USE_ZLIB=1 -s MODULARIZE=1 -s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='['_malloc', '_free']' -s EXTRA_EXPORTED_RUNTIME_METHODS='['ccall', 'cwrap', 'getValue', 'setValue']' -s WASM=1" )

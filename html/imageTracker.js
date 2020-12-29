@@ -25,9 +25,9 @@ export class ImageTracker {
         this.imPtr = this._Module._malloc(this._width * this._height);
     }
 
-    init(refImArr, refImWidth, refImHeight) {
-        this.refImPtr = this._Module._malloc(refImArr.length);
-        this._Module.HEAPU8.set(refImArr, this.refImPtr);
+    init(refIm, refImWidth, refImHeight) {
+        this.refImPtr = this._Module._malloc(refIm.length);
+        this._Module.HEAPU8.set(refIm, this.refImPtr);
         this._init(this.refImPtr, refImWidth, refImHeight);
     }
 
@@ -46,8 +46,8 @@ export class ImageTracker {
         };
     }
 
-    resetTracking(imArr) {
-        this._Module.HEAPU8.set(imArr, this.imPtr);
+    resetTracking(im) {
+        this._Module.HEAPU8.set(im, this.imPtr);
         const res = this._resetTracking(this.imPtr, this._width, this._height);
 
         const resObj = this.parseResult(res);
@@ -55,11 +55,11 @@ export class ImageTracker {
         return resObj;
     }
 
-    track(imArr) {
+    track(im) {
         if (!this.validPoints) {
-            return this.resetTracking(imArr, this._width, this._height);
+            return this.resetTracking(im, this._width, this._height);
         }
-        this._Module.HEAPU8.set(imArr, this.imPtr);
+        this._Module.HEAPU8.set(im, this.imPtr);
         const res = this._track(this.imPtr, this._width, this._height);
 
         const resObj = this.parseResult(res);

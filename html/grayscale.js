@@ -115,9 +115,9 @@ export class GrayScale
             navigator.mediaDevices.getUserMedia({
                 audio: false,
                 video: {
-                    width: { ideal: height },
-                    height: { ideal: width },
-                    aspectRatio: { ideal: height / width },
+                    width: { ideal: width },
+                    height: { ideal: height },
+                    aspectRatio: { ideal: width / height },
                     facingMode: "environment",
                     frameRate: 30,
                 }
