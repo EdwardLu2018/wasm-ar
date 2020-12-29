@@ -23,20 +23,38 @@ Reference image [here](https://github.com/EdwardLu2018/wasm-ar/blob/master/html/
 
 ## Building
 
-You need git, cmake and python installed. You need also to clone OpenCV in the root of the project.
-Run:
+You will need git, cmake, and python installed.
+
+The first step is to download and install emsdk (version 1.39.16 is recommended):
+```shell
+git clone https://github.com/emscripten-core/emsdk
+cd emsdk
+./emsdk update
+./emsdk install 1.39.16
+./emsdk activate 1.39.16
 ```
+
+Next, you need opencv with WebAssembly support.
+
+Instead of building opencv, you can use opencv-em: https://gist.github.com/kalwalt/a5fb9230f21b9e39f6fbc872cf20c376
+```shell
+curl --location "https://github.com/webarkit/opencv-em/releases/download/0.0.3/opencv-em-4.5.0-alpha-rc1.zip" -o opencv-em.zip
+unzip -o opencv-em.zip -d opencv
+cp -avr opencv/build_wasm/opencv ./
+rm opencv-em.zip
+```
+
+OR
+
+You can build opencv_js manually (make sure emsdk is installed!): https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html
+```shell
 git clone https://github.com/opencv/opencv.git
-```
-Build OpenCV with WebAssembly support (make sure you have Emscripten installed! emsdk version 1.39.16 is recommended):
-```
+cd opencv
 python ./platforms/js/build_js.py build_wasm --build_wasm
 ```
 The python script will build the static and the WASM lib in the build_wasm folder.
 
-Additional instructions to build OpenCV with WebAssembly support [here](https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html).
-
 Then, run:
-```
+```shell
 ./build.sh
 ```
