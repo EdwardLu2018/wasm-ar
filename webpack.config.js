@@ -3,13 +3,12 @@ const webpack = require("webpack");
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = (env, argv) => ({
-  entry: './html/index.js',
+  entry: './js/wasm-ar-lib.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: argv.mode == 'development' ? 'wasm-ar.js' : 'wasm-ar.min.js',
     library: 'WasmAR',
-    libraryTarget: 'var',
-    libraryExport: 'default',
+    libraryTarget: 'umd',
     globalObject: 'typeof self !== \'undefined\' ? self : this',
   },
   mode: argv.mode == 'development' ? 'development' : 'production',

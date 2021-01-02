@@ -9,8 +9,8 @@
 
         <script type="text/javascript" src="https://threejs.org/examples/js/libs/stats.min.js"></script>
 
-        <script type="text/javascript" src="../wasm/img_tracker_wasm.js"></script>
         <script type="text/javascript" src="../dist/wasm-ar.min.js"></script>
+        <script type="text/javascript" src="./js/index.js"></script>
 
         <title>WASM-AR</title>
     </head>
@@ -18,8 +18,7 @@
     <body>
         <div id="stats"></div>
         <img id="refIm" src="ref.jpg" width=200 height=285 style="display:none;">
-        <!-- <img id="arElem" src="ar.jpg" width=200 height=285 style="display:none;border:1px solid black;"> -->
         <iframe id="arElem" src="https://en.wikipedia.org/wiki/Homography"></iframe>
-        <div id="instructions">Tap on the screen to enable and disable tracking!</div>
+        <div id="loading">Loading Image Tracking Modules...</div>
     </body>
 </html>

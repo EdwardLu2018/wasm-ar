@@ -13,7 +13,7 @@ body {
     background: white;
 }
 
-#instructions {
+#loading {
     visibility: hidden;
     left: 50%;
     width: 200px;
@@ -21,7 +21,7 @@ body {
     background-color: #eee;
     text-align: center;
     border-radius: 10px;
-    padding: 15px;
+    padding: 10px;
     position: fixed;
     z-index: 9999;
     bottom: 20px;
@@ -29,13 +29,13 @@ body {
     word-wrap: break-word;
 }
 
-#instructions.show {
+#loading.show {
     visibility: visible;
     -webkit-animation: fadein 1.0s;
     animation: fadein 1.0s;
 }
 
-#instructions.hide {
+#loading.hide {
     -webkit-animation: fadeout 1.0s;
     animation: fadeout 1.0s;
 }
