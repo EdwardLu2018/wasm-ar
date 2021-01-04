@@ -180,7 +180,7 @@ output_t *track(uchar imageData[], size_t cols, size_t rows) {
     }
     avg_variance /= diffs.size();
 
-    if ((goodPtsCurr.size() > numMatches/2) && (1.0 > avg_variance)) {
+    if ((goodPtsCurr.size() > numMatches/2) && (2.0 > avg_variance)) {
         Mat transform = estimateAffine2D(goodPtsPrev, goodPtsCurr);
 
         // add row of {0,0,1} to transform to make it 3x3
