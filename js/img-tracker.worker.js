@@ -33,7 +33,6 @@ if ('function' === typeof importScripts) {
             postMessage({ type: "loaded" });
         }
 
-        console.log(msg.width, msg.height);
         tracker = new WasmAR.ImageTracker(msg.width, msg.height, onLoad);
     }
 
