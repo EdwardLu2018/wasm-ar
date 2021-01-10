@@ -106,13 +106,10 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GrayScaleMedia", function() { return GrayScaleMedia; });
-/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/typeof.js");
-/* harmony import */ var _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js");
-/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js");
-/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2__);
-
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js");
+/* harmony import */ var _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js");
+/* harmony import */ var _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1__);
 
 
 
@@ -129,10 +126,9 @@ function isMobile() {
 ;
 var GrayScaleMedia = /*#__PURE__*/function () {
   function GrayScaleMedia(source, width, height, canvas) {
-    _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_1___default()(this, GrayScaleMedia);
+    _babel_runtime_helpers_classCallCheck__WEBPACK_IMPORTED_MODULE_0___default()(this, GrayScaleMedia);
 
     this._source = source;
-    this._sourceType = _babel_runtime_helpers_typeof__WEBPACK_IMPORTED_MODULE_0___default()(this._source);
     this._width = width;
     this._height = height;
     this._canvas = canvas ? canvas : document.createElement("canvas");
@@ -144,7 +140,7 @@ var GrayScaleMedia = /*#__PURE__*/function () {
     this.initGL(this._flipImageProg, this._grayscaleProg);
   }
 
-  _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_2___default()(GrayScaleMedia, [{
+  _babel_runtime_helpers_createClass__WEBPACK_IMPORTED_MODULE_1___default()(GrayScaleMedia, [{
     key: "initGL",
     value: function initGL(vertShaderSource, fragShaderSource) {
       this.gl = this._canvas.getContext("webgl");
@@ -169,6 +165,7 @@ var GrayScaleMedia = /*#__PURE__*/function () {
       var positionLocation = this.gl.getAttribLocation(program, "position");
       this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
       this.gl.enableVertexAttribArray(positionLocation);
+      this.flipLocation = this.gl.getUniformLocation(program, "flipY");
       var texture = this.gl.createTexture();
       this.gl.activeTexture(this.gl.TEXTURE0);
       this.gl.bindTexture(this.gl.TEXTURE_2D, texture); // if either dimension of image is not a power of 2
@@ -185,21 +182,16 @@ var GrayScaleMedia = /*#__PURE__*/function () {
     key: "getFrame",
     value: function getFrame() {
       if (!this.glReady) return undefined;
+      this.gl.uniform1f(this.flipLocation, -1); // flip image
+
       this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this._source);
       this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
-      this.gl.readPixels(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuf); // webgl returns flipped image, so we will need to flip image buffer to return the correct orientation
-
-      var j = this.grayBuf.length - this.gl.drawingBufferWidth,
-          k = 0;
+      this.gl.readPixels(0, 0, this.gl.drawingBufferWidth, this.gl.drawingBufferHeight, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.pixelBuf);
+      var j = 0;
 
       for (var i = 0; i < this.pixelBuf.length; i += 4) {
-        this.grayBuf[j + k] = this.pixelBuf[i];
-        k++;
-
-        if (k == this.gl.drawingBufferWidth) {
-          j -= this.gl.drawingBufferWidth;
-          k = 0;
-        }
+        this.grayBuf[j] = this.pixelBuf[i];
+        j++;
       }
 
       return this.grayBuf;
@@ -368,7 +360,7 @@ var ImageTracker = /*#__PURE__*/function () {
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "attribute vec2 position;\nvarying vec2 tex_coords;\nvoid main(void) {\ntex_coords = (position + 1.0) / 2.0;\ntex_coords.y = 1.0 - tex_coords.y;\ngl_Position = vec4(position, 0.0, 1.0);\n}"
+module.exports = "attribute vec2 position;\nvarying vec2 tex_coords;\nuniform float flipY;\nvoid main(void) {\ntex_coords = (position + 1.0) / 2.0;\ntex_coords.y = 1.0 - tex_coords.y;\ngl_Position = vec4(position * vec2(1, flipY), 0.0, 1.0);\n}"
 
 /***/ }),
 
@@ -445,33 +437,6 @@ function _createClass(Constructor, protoProps, staticProps) {
 }
 
 module.exports = _createClass;
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/typeof.js":
-/*!*******************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/typeof.js ***!
-  \*******************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-function _typeof(obj) {
-  "@babel/helpers - typeof";
-
-  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-    module.exports = _typeof = function _typeof(obj) {
-      return typeof obj;
-    };
-  } else {
-    module.exports = _typeof = function _typeof(obj) {
-      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-    };
-  }
-
-  return _typeof(obj);
-}
-
-module.exports = _typeof;
 
 /***/ })
 
