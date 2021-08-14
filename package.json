@@ -10,18 +10,17 @@
   "keywords": [],
   "author": "Edward Lu (EdwardLu2018)",
   "devDependencies": {
-    "eslint": "^7.15.0",
-    "eslint-config-google": "^0.14.0",
     "@babel/core": "^7.9.0",
     "@babel/plugin-transform-runtime": "^7.9.0",
     "@babel/preset-env": "^7.9.5",
     "babel": "^6.23.0",
     "babel-loader": "^8.1.0",
-    "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11",
+    "eslint": "^7.15.0",
+    "eslint-config-google": "^0.14.0",
     "raw-loader": "^4.0.1",
-    "terser-webpack-plugin": "^2.3.6"
+    "terser-webpack-plugin": "^2.3.6",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
   },
-  "dependencies": {},
   "description": "Planar Homography Estimation and Image Tracking running in WASM"
 }

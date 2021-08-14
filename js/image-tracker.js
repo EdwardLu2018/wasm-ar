@@ -9,7 +9,7 @@ export class ImageTracker {
 
         this.valid = false;
 
-        ARWasm().then(function (Module) {
+        ImageTrackerWASM().then(function (Module) {
             console.log("WASM module loaded.");
             _this.onWasmInit(Module);
             if (callback) callback();

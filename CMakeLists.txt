@@ -16,10 +16,10 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${JS} )
 set( BUILD_WASM opencv/build_wasm )
 set( SRC_DIR emscripten )
 
+include_directories( opencv/include )
 include_directories( ${BUILD_WASM} )
-include_directories( ${BUILD_WASM}/opencv/include )
 
-file( GLOB opencv_include_modules "${BUILD_WASM}/opencv/modules/*/include" )
+file( GLOB opencv_include_modules "opencv/modules/*/include" )
 include_directories( ${opencv_include_modules} )
 
 file( GLOB opencv_js "${BUILD_WASM}/lib/*.a" )
@@ -30,4 +30,4 @@ file( GLOB WASMAR_SRCS ${SRC_DIR}/*.cpp )
 add_executable( img_tracker_wasm ${SRC_DIR}/img_tracker_wasm.cpp ${WASMAR_SRCS} )
 target_link_libraries( img_tracker_wasm ${opencv_js} )
 
-set_target_properties( img_tracker_wasm PROPERTIES LINK_FLAGS "-s EXPORT_NAME='ARWasm' -s USE_ZLIB=1 -s MODULARIZE=1 -s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='['_malloc', '_free']' -s EXTRA_EXPORTED_RUNTIME_METHODS='['cwrap', 'getValue']' -s WASM=1" )
+set_target_properties( img_tracker_wasm PROPERTIES LINK_FLAGS "-s ASSERTIONS=1 -s EXPORT_NAME='ImageTrackerWASM' -s USE_ZLIB=1 -s MODULARIZE=1 -s DEMANGLE_SUPPORT=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='['_malloc', '_free']' -s EXPORTED_RUNTIME_METHODS='['cwrap', 'getValue']' -s WASM=1" )
