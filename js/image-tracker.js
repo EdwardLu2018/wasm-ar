@@ -19,9 +19,9 @@ export class ImageTracker {
     onWasmInit(Module) {
         this._Module = Module;
 
-        this._init = this._Module.cwrap("_Z6initARPhmm", "number", ["number", "number", "number"]);
-        this._resetTracking = this._Module.cwrap("_Z13resetTrackingPhmm", "number", ["number", "number", "number"]);
-        this._track = this._Module.cwrap("_Z5trackPhmm", "number", ["number", "number", "number"]);
+        this._init = this._Module.cwrap("initAR", "number", ["number", "number", "number"]);
+        this._resetTracking = this._Module.cwrap("resetTracking", "number", ["number", "number", "number"]);
+        this._track = this._Module.cwrap("track", "number", ["number", "number", "number"]);
 
         this.imPtr = this._Module._malloc(this._width * this._height);
     }

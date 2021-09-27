@@ -70,6 +70,8 @@ static inline void clear_output() {
     memset(output, 0, sizeof(output_t));
 }
 
+extern "C" {
+
 EMSCRIPTEN_KEEPALIVE
 int initAR(uchar refData[], size_t refCols, size_t refRows) {
     akaze = AKAZE::create();
@@ -203,4 +205,6 @@ output_t *track(uchar imageData[], size_t cols, size_t rows) {
     prevIm = currIm.clone();
 
     return output;
+}
+
 }
