@@ -1,21 +1,9 @@
 #!/usr/bin/env bash
 
-if [ ! -d "./build" ]
-then
-    mkdir build
-    cd build
+mkdir build
+pushd build
 
-    emcmake cmake ..
-    emmake make
-elif [ "$1" == "--force" ]
-then
-    rm -rf build
-    mkdir build
-    cd build
+emcmake cmake -DCMAKE_BUILD_TYPE=Release ..
+emmake make -j7
 
-    emcmake cmake ..
-    emmake make
-else
-    cd build
-    make
-fi
+popd

@@ -7,7 +7,8 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif(NOT CMAKE_BUILD_TYPE)
 
-set( CMAKE_CXX_FLAGS_RELEASE "-g -Wall -O3" )
+set( CMAKE_CXX_FLAGS_DEBUG "-g-Oz -Wall" )
+set( CMAKE_CXX_FLAGS_RELEASE "-Oz -Wall" )
 
 set( JS ${CMAKE_SOURCE_DIR}/js )
 file( MAKE_DIRECTORY ${JS} )
