@@ -3,7 +3,7 @@ const webpack = require("webpack");
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = (env, argv) => ({
-  entry: './js/wasm-ar-lib.js',
+  entry: './js/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: argv.mode == 'development' ? 'wasm-ar.js' : 'wasm-ar.min.js',
@@ -27,6 +27,13 @@ module.exports = (env, argv) => ({
             ]
           }
         }]
+      },
+      {
+        test: /\worker\.js$/,
+        use: {
+          loader: 'worker-loader',
+          options: { inline: 'no-fallback' }
+        }
       },
       {
         test: /\.glsl$/i,

@@ -1,74 +1,80 @@
-const N = 10;
+import {Preprocessor} from "./preprocessor";
+import Worker from "./img-tracker.worker";
 
 export class ImageTracker {
-    constructor(width, height, callback) {
-        let _this = this;
+    constructor(source) {
+        this.running = false;
 
-        this._width = width;
-        this._height = height;
+        this.source = source;
+        this.sourceWidth = this.source.options.width;
+        this.sourceHeight = this.source.options.height;
 
-        this.valid = false;
+        this.grayBuf = new Uint8Array(this.sourceWidth * this.sourceHeight);
 
-        ImageTrackerWASM().then(function (Module) {
-            console.log("WASM module loaded.");
-            _this.onWasmInit(Module);
-            if (callback) callback();
-        });
+        this.preprocessor = new Preprocessor(this.sourceWidth, this.sourceHeight);
+        this.worker = new Worker();
     }
 
-    onWasmInit(Module) {
-        this._Module = Module;
+    init() {
+        this.source.init()
+            .then((source) => {
+                this.preprocessor.attachElem(source);
+                this.onInit(source);
+            })
+            .catch((err) => {
+                console.warn("ERROR: " + err);
+            });
+    }
 
-        this._init = this._Module.cwrap("initAR", "number", ["number", "number", "number"]);
-        this._resetTracking = this._Module.cwrap("resetTracking", "number", ["number", "number", "number"]);
-        this._track = this._Module.cwrap("track", "number", ["number", "number", "number"]);
+    onInit(source) {
+        const initEvent = new CustomEvent(
+            "onWasmARInit",
+            {detail: {source: source}}
+        );
+        window.dispatchEvent(initEvent);
 
-        this.imPtr = this._Module._malloc(this._width * this._height);
+        const _this = this;
+        this.worker.onmessage = function (e) {
+            var msg = e.data;
+            switch (msg.type) {
+                case "loaded": {
+                    break;
+                }
+                case "refImLoaded": {
+                    break;
+                }
+                case "result": {
+                    const H = msg.H;
+                    const hEvent = new CustomEvent(
+                        "onWasmARHomography", { detail: { H: H } }
+                    );
+                    window.dispatchEvent(hEvent);
+                    break;
+                }
+                case "not found": {
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+            // _this.process();
+        }
     }
 
     addRefIm(refIm, refImWidth, refImHeight) {
-        return new Promise((resolve, reject) => {
-            this.refImPtr = this._Module._malloc(refIm.length);
-            this._Module.HEAPU8.set(refIm, this.refImPtr);
-            this._init(this.refImPtr, refImWidth, refImHeight);
-            resolve();
+        this.worker.postMessage({
+            type: "refIm",
+            imagedata: refIm,
+            width: refImWidth,
+            height: refImHeight
+        }, [refIm]);
+    }
+
+    findHomography(imageData) {
+        this.worker.postMessage({
+            type: 'process',
+            imagedata: imageData
         });
-    }
-
-    parseResult(ptr) {
-        const valid = this._Module.getValue(ptr, "i8");
-        const dataPtr = this._Module.getValue(ptr + 4, "*");
-        let data = new Float64Array(this._Module.HEAPF64.buffer, dataPtr, 17);
-
-        const h = data.slice(0, 9);
-        const warped = data.slice(9, 17);
-
-        return {
-            valid: valid,
-            H: h,
-            corners: warped
-        };
-    }
-
-    resetTracking(im) {
-        this._Module.HEAPU8.set(im, this.imPtr);
-        const res = this._resetTracking(this.imPtr, this._width, this._height);
-
-        const resObj = this.parseResult(res);
-        this.valid = resObj.valid;
-        return resObj;
-    }
-
-    track(im) {
-        // reset tracking if homography is no long valid
-        if (!this.valid) {
-            return this.resetTracking(im, this._width, this._height);
-        }
-        this._Module.HEAPU8.set(im, this.imPtr);
-        const res = this._track(this.imPtr, this._width, this._height);
-
-        const resObj = this.parseResult(res);
-        this.valid = resObj.valid;
-        return resObj;
     }
 }

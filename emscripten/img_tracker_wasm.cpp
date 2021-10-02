@@ -88,7 +88,7 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
     corners[3] = cvPoint( 0, refRows );
 
     initialized = true;
-    cout << "Ready!" << endl;
+    cout << "Image tracking has been initialized." << endl;
 
     return 0;
 }
@@ -182,7 +182,7 @@ output_t *track(uchar imageData[], size_t cols, size_t rows) {
     }
     avg_variance /= diffs.size();
 
-    if ((goodPtsCurr.size() > numMatches/2) && (1.75 > avg_variance)) {
+    if ( (goodPtsCurr.size() > numMatches/2) && (1.75 > avg_variance) ) {
         Mat transform = estimateAffine2D(goodPtsPrev, goodPtsCurr);
 
         // add row of {0,0,1} to transform to make it 3x3
