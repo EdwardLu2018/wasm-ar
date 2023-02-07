@@ -60,10 +60,14 @@ function drawCorners(corners) {
 }
 
 function tick() {
+                console.log(991);
     stats.begin();
+                console.log(992);
 
     imageData = grayscale.getFrame();
+                console.log(993);
     const videoCanvasCtx = videoCanvas.getContext("2d");
+                console.log(994);
     videoCanvasCtx.drawImage(
         videoSource, 0, 0, width, height
     );
@@ -145,6 +149,7 @@ window.onload = () => {
     video.setAttribute("autoplay", "");
     video.setAttribute("muted", "");
     video.setAttribute("playsinline", "");
+    // document.body.appendChild(video);
 
     videoCanvas = document.createElement("canvas");
     setVideoStyle(videoCanvas);
