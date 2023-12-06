@@ -31,4 +31,4 @@ file( GLOB SRCS ${SRC_DIR}/*.cpp )
 add_executable( img_tracker_wasm ${SRC_DIR}/img_tracker_wasm.cpp ${SRCS} )
 target_link_libraries( img_tracker_wasm ${opencv_js} )
 
-set_target_properties( img_tracker_wasm PROPERTIES LINK_FLAGS "-s EXPORT_NAME='ImageTrackerWASM' -s USE_ZLIB=1 -s MODULARIZE=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='['_malloc', '_free']' -s EXPORTED_RUNTIME_METHODS='['cwrap', 'getValue']' -s WASM=1 -s --bind" )
+set_target_properties( img_tracker_wasm PROPERTIES LINK_FLAGS "-s EXPORT_NAME='ImageTrackerWASM' -s USE_ZLIB=1 -s MODULARIZE=1 -s ALLOW_MEMORY_GROWTH=1 -s ENVIRONMENT=worker -s EXPORTED_FUNCTIONS='['_malloc', '_free']' -s EXPORTED_RUNTIME_METHODS='['cwrap', 'getValue']' -s SINGLE_FILE=1 -s WASM=1 -s --bind" )

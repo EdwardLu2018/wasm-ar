@@ -1,6 +1,6 @@
 import {ImageTrackerModule} from "./image-tracker-module";
 
-self.onmessage = function (e) {
+onmessage = (e) => {
     var msg = e.data;
     switch (msg.type) {
         case "init": {
@@ -36,9 +36,7 @@ function load(msg) {
 
 function addRefIm(msg) {
     tracker.addRefIm(msg.imagedata, msg.width, msg.height)
-        .then(() => {
-            postMessage({ type: "refImLoaded" });
-        });
+    postMessage({ type: "refImLoaded" });
 }
 
 function process() {

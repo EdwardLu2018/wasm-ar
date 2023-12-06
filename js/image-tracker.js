@@ -1,5 +1,4 @@
 import {Preprocessor} from "./preprocessor";
-import Worker from "./img-tracker.worker";
 
 export class ImageTracker {
     constructor(source) {
@@ -12,7 +11,7 @@ export class ImageTracker {
         this.grayBuf = new Uint8Array(this.sourceWidth * this.sourceHeight);
 
         this.preprocessor = new Preprocessor(this.sourceWidth, this.sourceHeight);
-        this.worker = new Worker();
+        this.worker = new Worker(new URL('./img-tracker.worker.js', import.meta.url));
     }
 
     init() {
@@ -27,17 +26,22 @@ export class ImageTracker {
     }
 
     onInit(source) {
-        const initEvent = new CustomEvent(
-            "onWasmARInit",
-            {detail: {source: source}}
-        );
-        window.dispatchEvent(initEvent);
+        this.worker.postMessage({
+            type: "init",
+            width: this.sourceWidth,
+            height: this.sourceHeight,
+        });
 
         const _this = this;
         this.worker.onmessage = function (e) {
             var msg = e.data;
             switch (msg.type) {
                 case "loaded": {
+                    const initEvent = new CustomEvent(
+                        "onWasmARInit",
+                        {detail: {source: source}}
+                    );
+                    window.dispatchEvent(initEvent);
                     break;
                 }
                 case "refImLoaded": {
@@ -60,15 +64,24 @@ export class ImageTracker {
             }
             // _this.process();
         }
+
+        this.worker.onerror = e => {
+            console.error(e);
+        }
     }
 
     addRefIm(refIm, refImWidth, refImHeight) {
+        var canvas = document.createElement('canvas');
+        var context = canvas.getContext('2d');
+        context.drawImage(refIm, 0, 0 );
+        var refImData = context.getImageData(0, 0, refImWidth, refImHeight).data;
+
         this.worker.postMessage({
             type: "refIm",
-            imagedata: refIm,
+            imagedata: refImData,
             width: refImWidth,
             height: refImHeight
-        }, [refIm]);
+        });
     }
 
     findHomography(imageData) {

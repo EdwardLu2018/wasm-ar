@@ -61,7 +61,7 @@ window.addEventListener("onWasmARInit", (e) => {
     arElem.style.zIndex = 2;
 
     const refIm = document.getElementById("refIm");
-    // imageTracker.addRefIm(refIm, refIm.width, refIm.height);
+    imageTracker.addRefIm(refIm, refIm.width, refIm.height);
 
     resize();
     tick();

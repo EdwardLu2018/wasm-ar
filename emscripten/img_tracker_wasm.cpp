@@ -19,8 +19,8 @@ using namespace cv;
 
 bool initialized = false;
 
-Ptr<AKAZE> akaze = NULL;
-Ptr<BFMatcher> matcher = NULL;
+Ptr<AKAZE> akaze = nullptr;
+Ptr<BFMatcher> matcher = nullptr;
 
 Mat refGray, refDescr;
 vector<KeyPoint> refKeyPts;
@@ -77,7 +77,9 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
     akaze = AKAZE::create();
     matcher = BFMatcher::create();
 
-    Mat refGray = Mat(refRows, refCols, CV_8UC1, refData);
+    Mat refIm = Mat(refRows, refCols, CV_8UC4, refData);
+    Mat refGray;
+    cvtColor(refIm, refGray, COLOR_BGR2GRAY);
 
     akaze->detectAndCompute(refGray, noArray(), refKeyPts, refDescr);
 
@@ -97,7 +99,7 @@ EMSCRIPTEN_KEEPALIVE
 output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
     if (!initialized) {
         cout << "Reference image not found!" << endl;
-        return NULL;
+        return nullptr;
     }
 
     clear_output();
@@ -108,29 +110,29 @@ output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
     vector<KeyPoint> frameKeyPts;
     akaze->detectAndCompute(currIm, noArray(), frameKeyPts, frameDescr);
 
-    vector<vector<DMatch>> knnMatches;
-    matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
+    // vector<vector<DMatch>> knnMatches;
+    // matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
 
-    framePts.clear();
-    vector<Point2f> refPts;
-    // find the best matches
-    for (size_t i = 0; i < knnMatches.size(); ++i) {
-        if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
-            framePts.push_back( frameKeyPts[knnMatches[i][0].queryIdx].pt );
-            refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
-        }
-    }
+    // framePts.clear();
+    // vector<Point2f> refPts;
+    // // find the best matches
+    // for (size_t i = 0; i < knnMatches.size(); ++i) {
+    //     if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
+    //         framePts.push_back( frameKeyPts[knnMatches[i][0].queryIdx].pt );
+    //         refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
+    //     }
+    // }
 
-    // need at least 4 pts to define homography
-    if (framePts.size() > 15) {
-        H = findHomography(refPts, framePts, RANSAC);
-        bool valid;
-        if ( (valid = homographyValid(H)) ) {
-            numMatches = framePts.size();
-            fill_output(H, valid);
-            prevIm = currIm.clone();
-        }
-    }
+    // // need at least 4 pts to define homography
+    // if (framePts.size() > 15) {
+    //     H = findHomography(refPts, framePts, RANSAC);
+    //     bool valid;
+    //     if ( (valid = homographyValid(H)) ) {
+    //         numMatches = framePts.size();
+    //         fill_output(H, valid);
+    //         prevIm = currIm.clone();
+    //     }
+    // }
 
     return output;
 }
@@ -139,12 +141,12 @@ EMSCRIPTEN_KEEPALIVE
 output_t *track(uchar imageData[], size_t cols, size_t rows) {
     if (!initialized) {
         cout << "Reference image not found!" << endl;
-        return NULL;
+        return nullptr;
     }
 
     if (prevIm.empty()) {
         cout << "Tracking is uninitialized!" << endl;
-        return NULL;
+        return nullptr;
     }
 
     clear_output();

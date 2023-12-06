@@ -4,11 +4,28 @@
   "main": "./js/index.js",
   "scripts": {
     "dev": "webpack --mode development --progress --watch",
-    "build": "./build.sh && webpack --mode production; echo Built at `date`",
+    "build:wasm": "./build.sh",
+    "build:js": "webpack --mode production",
+    "build": "npm run build:wasm; npm run build:js; echo Built at `date`",
     "serve": "python3 -m http.server"
   },
   "keywords": [],
   "author": "Edward Lu (EdwardLu2018)",
+  "license": "ISC",
+  "browserslist": [
+    "last 3 firefox versions",
+    "last 3 and_chr versions",
+    "last 3 chrome versions",
+    "last 3 opera versions",
+    "last 3 ios_saf versions",
+    "last 3 safari versions"
+  ],
+  "browser": {
+    "fs": false,
+    "path": false,
+    "os": false,
+    "crypto": false
+  },
   "devDependencies": {
     "@babel/core": "^7.15.5",
     "@babel/plugin-transform-runtime": "^7.15.0",
@@ -19,9 +36,8 @@
     "eslint-config-google": "^0.14.0",
     "raw-loader": "^4.0.1",
     "terser-webpack-plugin": "^2.3.6",
-    "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11",
-    "worker-loader": "^3.0.4"
+    "webpack": "^5.52.1",
+    "webpack-cli": "^4.8.0"
   },
   "description": "Planar Homography Estimation and Image Tracking running in WASM"
 }

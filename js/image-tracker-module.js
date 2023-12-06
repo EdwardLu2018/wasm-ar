@@ -19,7 +19,7 @@ export class ImageTrackerModule {
     onWasmInit(Module) {
         this._Module = Module;
 
-        this._init = this._Module.cwrap("initAR", "number", ["number", "number", "number"]);
+        this._initAR = this._Module.cwrap("initAR", "number", ["number", "number", "number"]);
         this._resetTracking = this._Module.cwrap("resetTracking", "number", ["number", "number", "number"]);
         this._track = this._Module.cwrap("track", "number", ["number", "number", "number"]);
 
@@ -30,7 +30,7 @@ export class ImageTrackerModule {
         console.log("here!!!");
         this.refImPtr = this._Module._malloc(refIm.length);
         this._Module.HEAPU8.set(refIm, this.refImPtr);
-        this._init(this.refImPtr, refImWidth, refImHeight);
+        this._initAR(this.refImPtr, refImWidth, refImHeight);
     }
 
     parseResult(ptr) {
@@ -51,7 +51,6 @@ export class ImageTrackerModule {
     resetTracking(im) {
         this._Module.HEAPU8.set(im, this.imPtr);
         const res = this._resetTracking(this.imPtr, this._width, this._height);
-
         const resObj = this.parseResult(res);
         this.valid = resObj.valid;
         return resObj;
@@ -62,11 +61,11 @@ export class ImageTrackerModule {
         if (!this.valid) {
             return this.resetTracking(im, this._width, this._height);
         }
-        this._Module.HEAPU8.set(im, this.imPtr);
-        const res = this._track(this.imPtr, this._width, this._height);
+        // this._Module.HEAPU8.set(im, this.imPtr);
+        // const res = this._track(this.imPtr, this._width, this._height);
 
-        const resObj = this.parseResult(res);
-        this.valid = resObj.valid;
-        return resObj;
+        // const resObj = this.parseResult(res);
+        // this.valid = resObj.valid;
+        // return resObj;
     }
 }
