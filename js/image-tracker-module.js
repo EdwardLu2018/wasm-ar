@@ -23,13 +23,12 @@ export class ImageTrackerModule {
         this._resetTracking = this._Module.cwrap("resetTracking", "number", ["number", "number", "number"]);
         this._track = this._Module.cwrap("track", "number", ["number", "number", "number"]);
 
-        this.imPtr = this._Module._malloc(this._width * this._height);
+        this.imPtr = this._Module._malloc(this._width * this._height * 4);
     }
 
-    addRefIm(refIm, refImWidth, refImHeight) {
-        console.log("here!!!");
-        this.refImPtr = this._Module._malloc(refIm.length);
-        this._Module.HEAPU8.set(refIm, this.refImPtr);
+    addRefIm(refImData, refImWidth, refImHeight) {
+        this.refImPtr = this._Module._malloc(refImWidth * refImHeight * 4);
+        this._Module.HEAPU8.set(refImData, this.refImPtr);
         this._initAR(this.refImPtr, refImWidth, refImHeight);
     }
 
@@ -49,23 +48,22 @@ export class ImageTrackerModule {
     }
 
     resetTracking(im) {
-        this._Module.HEAPU8.set(im, this.imPtr);
         const res = this._resetTracking(this.imPtr, this._width, this._height);
         const resObj = this.parseResult(res);
         this.valid = resObj.valid;
         return resObj;
     }
 
-    track(im) {
+    track(imData) {
+        this._Module.HEAPU8.set(imData, this.imPtr);
         // reset tracking if homography is no long valid
         if (!this.valid) {
-            return this.resetTracking(im, this._width, this._height);
+            return this.resetTracking(imData, this._width, this._height);
         }
-        // this._Module.HEAPU8.set(im, this.imPtr);
-        // const res = this._track(this.imPtr, this._width, this._height);
 
-        // const resObj = this.parseResult(res);
-        // this.valid = resObj.valid;
-        // return resObj;
+        const res = this._track(this.imPtr, this._width, this._height);
+        const resObj = this.parseResult(res);
+        this.valid = resObj.valid;
+        return resObj;
     }
 }

@@ -3,8 +3,8 @@ var arElem = null;
 
 var wasmARSource = new WasmAR.ImageTrackerSource();
 wasmARSource.setOptions({
-    width: 1280,
-    height: 720,
+    width: 640,
+    height: 480,
 });
 
 var overlayCanvas = document.createElement("canvas");
@@ -12,6 +12,7 @@ overlayCanvas.id = "overlay";
 overlayCanvas.style.position = "absolute";
 overlayCanvas.style.top = "0px";
 overlayCanvas.style.left = "0px";
+overlayCanvas.style.zIndex = 9999;
 overlayCanvas.width = wasmARSource.options.width;
 overlayCanvas.height = wasmARSource.options.height;
 
@@ -58,7 +59,7 @@ window.addEventListener("onWasmARInit", (e) => {
 
     arElem = document.getElementById("arElem");
     arElem.style["transform-origin"] = "top left"; // default is center
-    arElem.style.zIndex = 2;
+    arElem.style.zIndex = 9999;
 
     const refIm = document.getElementById("refIm");
     imageTracker.addRefIm(refIm, refIm.width, refIm.height);
@@ -67,12 +68,15 @@ window.addEventListener("onWasmARInit", (e) => {
     tick();
 });
 
+var i = 0;
 function tick() {
     stats.update();
-    imageTracker.preprocessor.getPixels().then((imageData) => {
-        imageTracker.findHomography(imageData);
-    });
-    requestAnimationFrame(tick)
+    if (i % 50 == 0)
+        imageTracker.preprocessor.getPixels().then((imageData) => {
+            imageTracker.findHomography(imageData);
+        });
+    i++;
+    requestAnimationFrame(tick);
 }
 
 window.addEventListener("onWasmARHomography", (e) => {

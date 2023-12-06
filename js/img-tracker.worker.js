@@ -1,5 +1,9 @@
 import {ImageTrackerModule} from "./image-tracker-module";
 
+var next = null;
+var tracker = null;
+var result = null;
+
 onmessage = (e) => {
     var msg = e.data;
     switch (msg.type) {
@@ -22,10 +26,6 @@ onmessage = (e) => {
     }
 };
 
-var next = null;
-var tracker = null;
-var result = null;
-
 function load(msg) {
     var onLoad = function() {
         postMessage({ type: "loaded" });
@@ -47,7 +47,8 @@ function process() {
     }
 
     if (result && result.valid) {
-        postMessage({ type: "result", result: result });
+        result.type = "result";
+        postMessage(result);
     }
     else {
         postMessage({ type: "not found" });

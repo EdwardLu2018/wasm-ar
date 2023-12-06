@@ -15,7 +15,7 @@
 using namespace std;
 using namespace cv;
 
-#define GOOD_MATCH_RATIO    0.7f
+#define GOOD_MATCH_RATIO    0.8f
 
 bool initialized = false;
 
@@ -78,10 +78,9 @@ int initAR(uchar refData[], size_t refCols, size_t refRows) {
     matcher = BFMatcher::create();
 
     Mat refIm = Mat(refRows, refCols, CV_8UC4, refData);
-    Mat refGray;
-    cvtColor(refIm, refGray, COLOR_BGR2GRAY);
+    cvtColor(refIm, refIm, COLOR_RGBA2GRAY);
 
-    akaze->detectAndCompute(refGray, noArray(), refKeyPts, refDescr);
+    akaze->detectAndCompute(refIm, noArray(), refKeyPts, refDescr);
 
     // initialize reference image corners for warping
     corners[0] = cvPoint( 0, 0 );
@@ -104,35 +103,38 @@ output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
 
     clear_output();
 
-    Mat currIm = Mat(rows, cols, CV_8UC1, imageData);
+    Mat currIm = Mat(rows, cols, CV_8UC4, imageData);
+    cvtColor(currIm, currIm, COLOR_RGBA2GRAY);
 
     Mat frameDescr;
     vector<KeyPoint> frameKeyPts;
     akaze->detectAndCompute(currIm, noArray(), frameKeyPts, frameDescr);
 
-    // vector<vector<DMatch>> knnMatches;
-    // matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
+    vector<vector<DMatch>> knnMatches;
+    matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
 
-    // framePts.clear();
-    // vector<Point2f> refPts;
-    // // find the best matches
-    // for (size_t i = 0; i < knnMatches.size(); ++i) {
-    //     if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
-    //         framePts.push_back( frameKeyPts[knnMatches[i][0].queryIdx].pt );
-    //         refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
-    //     }
-    // }
+    framePts.clear();
+    vector<Point2f> refPts;
+    // find the best matches
+    for (size_t i = 0; i < knnMatches.size(); ++i) {
+        if (knnMatches[i][0].distance < GOOD_MATCH_RATIO * knnMatches[i][1].distance) {
+            framePts.push_back( frameKeyPts[knnMatches[i][0].queryIdx].pt );
+            refPts.push_back( refKeyPts[knnMatches[i][0].trainIdx].pt );
+        }
+    }
 
-    // // need at least 4 pts to define homography
-    // if (framePts.size() > 15) {
-    //     H = findHomography(refPts, framePts, RANSAC);
-    //     bool valid;
-    //     if ( (valid = homographyValid(H)) ) {
-    //         numMatches = framePts.size();
-    //         fill_output(H, valid);
-    //         prevIm = currIm.clone();
-    //     }
-    // }
+    // need at least 4 pts to define a homography
+    if (framePts.size() >= 4) {
+        H = findHomography(refPts, framePts, RANSAC);
+        bool valid;
+        if ( (valid = homographyValid(H)) ) {
+            numMatches = framePts.size();
+            fill_output(H, valid);
+            prevIm = currIm.clone();
+        }
+    }
+
+    cout << refKeyPts.size() << " " << frameKeyPts.size() << " " << framePts.size() << endl;
 
     return output;
 }
@@ -151,7 +153,8 @@ output_t *track(uchar imageData[], size_t cols, size_t rows) {
 
     clear_output();
 
-    Mat currIm = Mat(rows, cols, CV_8UC1, imageData);
+    Mat currIm = Mat(rows, cols, CV_8UC4, imageData);
+    cvtColor(currIm, currIm, COLOR_RGBA2GRAY);
     // GaussianBlur(currIm, currIm, Size(3,3), 2);
 
     // use optical flow to track keypoints

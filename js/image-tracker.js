@@ -49,8 +49,9 @@ export class ImageTracker {
                 }
                 case "result": {
                     const H = msg.H;
+                    const corners = msg.corners;
                     const hEvent = new CustomEvent(
-                        "onWasmARHomography", { detail: { H: H } }
+                        "onWasmARHomography", { detail: { H: H, corners: corners } }
                     );
                     window.dispatchEvent(hEvent);
                     break;
@@ -62,7 +63,6 @@ export class ImageTracker {
                     break;
                 }
             }
-            // _this.process();
         }
 
         this.worker.onerror = e => {
@@ -72,13 +72,17 @@ export class ImageTracker {
 
     addRefIm(refIm, refImWidth, refImHeight) {
         var canvas = document.createElement('canvas');
+        canvas.width = refImWidth;
+        canvas.height = refImHeight;
+        // document.body.appendChild(canvas);
+
         var context = canvas.getContext('2d');
-        context.drawImage(refIm, 0, 0 );
-        var refImData = context.getImageData(0, 0, refImWidth, refImHeight).data;
+        context.drawImage(refIm, 0, 0, refImWidth, refImHeight);
+        var refImData = context.getImageData(0, 0, refImWidth, refImHeight);
 
         this.worker.postMessage({
             type: "refIm",
-            imagedata: refImData,
+            imagedata: refImData.data,
             width: refImWidth,
             height: refImHeight
         });
