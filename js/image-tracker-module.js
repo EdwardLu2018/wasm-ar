@@ -56,6 +56,7 @@ export class ImageTrackerModule {
 
     track(imData) {
         this._Module.HEAPU8.set(imData, this.imPtr);
+        console.log(this.valid)
         // reset tracking if homography is no long valid
         if (!this.valid) {
             return this.resetTracking(imData, this._width, this._height);

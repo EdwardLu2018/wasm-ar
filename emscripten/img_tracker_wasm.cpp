@@ -19,7 +19,7 @@ using namespace cv;
 
 bool initialized = false;
 
-Ptr<AKAZE> akaze = nullptr;
+Ptr<SIFT> sift = nullptr;
 Ptr<BFMatcher> matcher = nullptr;
 
 Mat refGray, refDescr;
@@ -66,7 +66,7 @@ static inline void fill_output(Mat H, bool valid) {
     output->data[16] = warped[3].y;
 }
 
-static inline void clear_output() {
+static inline void clearOutput() {
     memset(output, 0, sizeof(output_t));
 }
 
@@ -74,13 +74,13 @@ extern "C" {
 
 EMSCRIPTEN_KEEPALIVE
 int initAR(uchar refData[], size_t refCols, size_t refRows) {
-    akaze = AKAZE::create();
+    sift = SIFT::create();
     matcher = BFMatcher::create();
 
     Mat refIm = Mat(refRows, refCols, CV_8UC4, refData);
     cvtColor(refIm, refIm, COLOR_RGBA2GRAY);
 
-    akaze->detectAndCompute(refIm, noArray(), refKeyPts, refDescr);
+    sift->detectAndCompute(refIm, noArray(), refKeyPts, refDescr);
 
     // initialize reference image corners for warping
     corners[0] = cvPoint( 0, 0 );
@@ -101,14 +101,15 @@ output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
         return nullptr;
     }
 
-    clear_output();
-
     Mat currIm = Mat(rows, cols, CV_8UC4, imageData);
-    cvtColor(currIm, currIm, COLOR_RGBA2GRAY);
+    // cvtColor(currIm, currIm, COLOR_RGBA2GRAY);
+    std::vector<cv::Mat> bgr;
+    split(currIm, bgr);
+    currIm = bgr[0];
 
     Mat frameDescr;
     vector<KeyPoint> frameKeyPts;
-    akaze->detectAndCompute(currIm, noArray(), frameKeyPts, frameDescr);
+    sift->detectAndCompute(currIm, noArray(), frameKeyPts, frameDescr);
 
     vector<vector<DMatch>> knnMatches;
     matcher->knnMatch(frameDescr, refDescr, knnMatches, 2);
@@ -123,6 +124,8 @@ output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
         }
     }
 
+    clearOutput();
+
     // need at least 4 pts to define a homography
     if (framePts.size() >= 4) {
         H = findHomography(refPts, framePts, RANSAC);
@@ -134,7 +137,7 @@ output_t *resetTracking(uchar imageData[], size_t cols, size_t rows) {
         }
     }
 
-    cout << refKeyPts.size() << " " << frameKeyPts.size() << " " << framePts.size() << endl;
+    // cout << refKeyPts.size() << " " << frameKeyPts.size() << " " << framePts.size() << endl;
 
     return output;
 }
@@ -151,10 +154,13 @@ output_t *track(uchar imageData[], size_t cols, size_t rows) {
         return nullptr;
     }
 
-    clear_output();
+    clearOutput();
 
     Mat currIm = Mat(rows, cols, CV_8UC4, imageData);
-    cvtColor(currIm, currIm, COLOR_RGBA2GRAY);
+    // cvtColor(currIm, currIm, COLOR_RGBA2GRAY);
+    std::vector<cv::Mat> bgr;
+    split(currIm, bgr);
+    currIm = bgr[0];
     // GaussianBlur(currIm, currIm, Size(3,3), 2);
 
     // use optical flow to track keypoints

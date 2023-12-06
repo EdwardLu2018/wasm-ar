@@ -1,10 +1,13 @@
 var stats = null;
 var arElem = null;
 
+const width = 640;
+const height = 480;
+
 var wasmARSource = new WasmAR.ImageTrackerSource();
 wasmARSource.setOptions({
-    width: 640,
-    height: 480,
+    width: width,
+    height: height,
 });
 
 var overlayCanvas = document.createElement("canvas");
@@ -20,9 +23,15 @@ var imageTracker = new WasmAR.ImageTracker(wasmARSource);
 imageTracker.init();
 
 function transformElem(h, elem) {
+    const sourceWidth = width;
+    const sourceHeight = height;
+
+    const scaleX = window.innerWidth / sourceWidth;
+    const scaleY = window.innerHeight / sourceHeight;
+
     // column major order
-    let transform = [h[0], h[3], 0, h[6],
-                     h[1], h[4], 0, h[7],
+    let transform = [h[0] * -scaleX, h[3], 0, h[6],
+                     h[1], h[4] * scaleY, 0, h[7],
                       0  ,  0  , 1,  0  ,
                      h[2], h[5], 0, h[8]];
     transform = "matrix3d("+transform.join(",")+")";
@@ -70,9 +79,9 @@ window.addEventListener("onWasmARInit", (e) => {
 
 var i = 0;
 function tick() {
-    stats.update();
-    if (i % 50 == 0)
+    if (i % 25 == 0)
         imageTracker.preprocessor.getPixels().then((imageData) => {
+            stats.update();
             imageTracker.findHomography(imageData);
         });
     i++;
