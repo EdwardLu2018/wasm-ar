@@ -34,7 +34,7 @@
     "babel-loader": "^8.1.0",
     "webpack": "^5.52.1",
     "webpack-cli": "^4.8.0",
-    "webpack-dev-server": "^4.0.0"
+    "webpack-dev-server": "^5.2.3"
   },
   "description": "Planar Homography Estimation and Image Tracking running in WASM"
 }

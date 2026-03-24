@@ -9,9 +9,8 @@
 # Dependencies
 node_modules/
 
-# Build output
-build/
-dist/*.wasm
+# Build intermediates (dist/ and build/ are committed for GitHub Pages)
+build/*.worker.js
 
 # Emscripten SDK
 emsdk/
