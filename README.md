@@ -14,7 +14,7 @@ Try the live demo in your browser:
 
 [https://edwardlu2018.github.io/wasm-ar/](https://edwardlu2018.github.io/wasm-ar/)
 
-Point your camera at the [reference image](https://github.com/EdwardLu2018/wasm-ar/blob/master/html/ref.jpg?raw=1). If the overlay positioning looks off, look away briefly and point back at the image to re-detect.
+Point your camera at the [reference image](https://github.com/EdwardLu2018/wasm-ar/blob/main/html/ref.jpg?raw=1). If the overlay positioning looks off, look away briefly and point back at the image to re-detect.
 
 ## How it works
 
@@ -27,21 +27,23 @@ Everything runs client-side in the browser:
 5. The homography matrix is passed back to JavaScript via `postMessage` and used to warp an HTML element (iframe) with a CSS `matrix3d` transform
 6. When tracking is lost (invalid homography or too few tracked points), ORB detection runs again automatically
 
-### Web technologies used
-
-| Technology | Role |
-|-----------|------|
-| **WebAssembly** | Runs OpenCV (ORB, optical flow, homography) at near-native speed |
-| **WebGL2** | GPU-accelerated grayscale conversion with async PBO readback |
-| **Web Workers** | Keeps WASM computation off the main thread for smooth 60fps rendering |
-| **getUserMedia** | Accesses device camera (front or back) |
-| **CSS matrix3d** | Applies the computed homography as a projective transform on HTML elements |
-
 ## Building
+
+### Clone the repo
+
+```shell
+git clone --recursive git@github.com:EdwardLu2018/wasm-ar.git
+```
+
+If you accidentally cloned without `--recursive`:
+
+```shell
+# in repo root
+git submodule update --init --recursive
+```
 
 ### Prerequisites
 
-- git
 - python3
 - make
 - [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html)
@@ -58,14 +60,17 @@ source ./emsdk_env.sh
 
 ### Build OpenCV for WebAssembly
 
+OpenCV is included as a git submodule. Build it for WASM using the official build script (see [OpenCV.js build docs](https://docs.opencv.org/4.x/d4/da1/tutorial_js_setup.html) for details):
+
 ```shell
-git clone https://github.com/opencv/opencv.git
-python3 opencv/platforms/js/build_js.py opencv/build_wasm --build_wasm
+# in repo root
+emcmake python3 opencv/platforms/js/build_js.py opencv/build_wasm --cmake_option="-DCMAKE_CXX_STANDARD=17"
 ```
 
 ### Build and Run
 
 ```shell
+# in repo root
 npm install
 npm run build
 npm run serve

@@ -9,14 +9,14 @@
 # Dependencies
 node_modules/
 
-# Build intermediates (dist/ and build/ are committed for GitHub Pages)
+# Build intermediates
 build/*.worker.js
 
 # Emscripten SDK
 emsdk/
 
-# OpenCV source and build
-opencv/
+# OpenCV build artifacts
+opencv/build_wasm/
 
 # Specs and plans
 docs/superpowers/
