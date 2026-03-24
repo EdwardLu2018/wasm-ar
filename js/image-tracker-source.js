@@ -1,3 +1,5 @@
+import {Preprocessor} from "./preprocessor";
+
 export class ImageTrackerSource {
     constructor(options) {
         this.options = {
@@ -17,6 +19,8 @@ export class ImageTrackerSource {
         this.video.style.top = "0px";
         this.video.style.left = "0px";
         this.video.style.zIndex = "9998";
+
+        this.preprocessor = new Preprocessor(this.options.width, this.options.height);
     }
 
     setOptions(options) {
@@ -42,7 +46,8 @@ export class ImageTrackerSource {
 
             this.video.style.height = screenHeight + "px";
             this.video.style.marginTop = "0px";
-        } else {
+        }
+        else {
             var newHeight = 1 / (sourceAspect / screenWidth);
             this.video.style.height = newHeight + "px";
             this.video.style.marginTop = -(newHeight - screenHeight) / 2 + "px";
@@ -57,6 +62,8 @@ export class ImageTrackerSource {
         elem.height = this.options.height;
         elem.style.width = this.video.style.width;
         elem.style.height = this.video.style.height;
+        elem.style.marginLeft = this.video.style.marginLeft;
+        elem.style.marginTop = this.video.style.marginTop;
         elem.style.position = this.video.style.position;
         elem.style.top = this.video.style.top;
         elem.style.left = this.video.style.left;
@@ -80,6 +87,7 @@ export class ImageTrackerSource {
                 this.video.srcObject = stream;
                 this.video.onloadedmetadata = (e) => {
                     this.video.play();
+                    this.preprocessor.attachElem(this.video);
                     resolve(this.video);
                 };
             })
@@ -87,5 +95,9 @@ export class ImageTrackerSource {
                 reject(err);
             });
         });
+    }
+
+    getPixels() {
+        return this.preprocessor.getPixels();
     }
 }

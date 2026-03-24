@@ -1,50 +1,85 @@
-# Planar Homography Estimation and Image Tracking Running in WASM
+# Web-Based AR Image Tracking with WebAssembly
+
+Real-time planar image tracking running entirely in the browser. No native apps, no plugins, no server-side processing. Uses WebAssembly (OpenCV compiled to WASM), WebGL2 for GPU-accelerated preprocessing, and Web Workers for off-main-thread computation.
+
+Works on desktop and mobile browsers with camera access.
 
 Demo on laptop                    |  Demo on iPhone
 :--------------------------------:|:-------------------------:
-![PC demo](./demos/demo_pc.gif)   |  ![phone demo](./demos/demo_iphone.gif)
+![PC demo](./media/demo_pc.gif)   |  ![phone demo](./media/demo_iphone.gif)
 
 ## Try it out
 
-Try it out here (tap the screen to enable and disable tracking):
+Try the live demo in your browser:
 
 [https://edwardlu2018.github.io/wasm-ar/](https://edwardlu2018.github.io/wasm-ar/)
 
-Reference image [here](https://github.com/EdwardLu2018/wasm-ar/blob/master/html/ref.jpg?raw=1).
+Point your camera at the [reference image](https://github.com/EdwardLu2018/wasm-ar/blob/master/html/ref.jpg?raw=1). If the overlay positioning looks off, look away briefly and point back at the image to re-detect.
 
-## Pipeline
+## How it works
 
-1. Pass image from video stream as an array from JavaScript to WASM program. Turn image to grayscale.
-2. Find homography matrix by creating and matching ORB descriptor keypoints from reference image to video frame.
-3. Take those descriptor points from the video frame and track them using Lucas-Kanade tracking algorithm.
-4. Find 2d affine transform ```T``` of descriptor points from one frame to the next and update homography matrix. ```H = T * H```
-5. Pass homography matrix and warped corner points back to JavaScript and warp iframe element with homography matrix.
-6. If homography matrix becomes invalid or at most 1/3 of tracked descriptor points are lost, repeat step 2.
+Everything runs client-side in the browser:
+
+1. **WebGL2 GPU shader** converts the camera video frame to grayscale on the main thread
+2. Grayscale pixel data is sent to a **Web Worker** running an **OpenCV WASM** module
+3. **ORB feature detection** matches keypoints from the reference image to the video frame and computes a homography matrix
+4. Frame-to-frame tracking uses **Lucas-Kanade optical flow** for smooth, fast updates without re-detecting every frame
+5. The homography matrix is passed back to JavaScript via `postMessage` and used to warp an HTML element (iframe) with a CSS `matrix3d` transform
+6. When tracking is lost (invalid homography or too few tracked points), ORB detection runs again automatically
+
+### Web technologies used
+
+| Technology | Role |
+|-----------|------|
+| **WebAssembly** | Runs OpenCV (ORB, optical flow, homography) at near-native speed |
+| **WebGL2** | GPU-accelerated grayscale conversion with async PBO readback |
+| **Web Workers** | Keeps WASM computation off the main thread for smooth 60fps rendering |
+| **getUserMedia** | Accesses device camera (front or back) |
+| **CSS matrix3d** | Applies the computed homography as a projective transform on HTML elements |
 
 ## Building
 
-You will need git, cmake, and python installed.
+### Prerequisites
 
-The first step is to download and install emsdk (version 1.39.16 is recommended):
+- git
+- python3
+- make
+- [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html)
+
+### Install Emscripten
+
 ```shell
 git clone https://github.com/emscripten-core/emsdk
 cd emsdk
-./emsdk update
-./emsdk install 1.39.16
-./emsdk activate 1.39.16
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh
 ```
 
-Next, you need opencv with WebAssembly support.
+### Build OpenCV for WebAssembly
 
-You can build opencv_js manually (make sure emsdk is installed!): https://docs.opencv.org/master/d4/da1/tutorial_js_setup.html
 ```shell
 git clone https://github.com/opencv/opencv.git
-python opencv/platforms/js/build_js.py opencv/build_wasm --build_wasm
+python3 opencv/platforms/js/build_js.py opencv/build_wasm --build_wasm
 ```
-The python script will build the static and the WASM lib in the build_wasm folder.
 
-Then, run:
+### Build and Run
+
 ```shell
 npm install
 npm run build
+npm run serve
 ```
+
+Then open `http://localhost:8000/html/` in your browser.
+
+### Build Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run build` | Build WASM and JS bundle |
+| `npm run build:wasm` | Build WASM module only |
+| `npm run build:js` | Build JS bundle only |
+| `npm run dev` | Watch mode (JS only) |
+| `npm run serve` | Start local dev server |
+| `npm run clean` | Remove build artifacts |

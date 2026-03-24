@@ -2,6 +2,11 @@ html,
 body {
     margin: 0;
     overflow: hidden;
+    background: #000;
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #arElem {
@@ -11,50 +16,51 @@ body {
     display: none;
     border: 1px solid black;
     background: white;
+    pointer-events: none;
+}
+
+#arWrapper {
+    pointer-events: none;
+}
+
+#overlay {
+    pointer-events: none;
 }
 
 #loading {
-    visibility: hidden;
     left: 50%;
     width: 200px;
     margin-left: -100px;
-    background-color: #eee;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
     text-align: center;
     border-radius: 10px;
     padding: 10px;
     position: fixed;
-    z-index: 9999;
+    z-index: 10000;
     bottom: 20px;
-    font-size: 15px;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     word-wrap: break-word;
-}
-
-#loading.show {
-    visibility: visible;
-    -webkit-animation: fadein 1.0s;
-    animation: fadein 1.0s;
+    transition: opacity 0.5s;
 }
 
 #loading.hide {
-    -webkit-animation: fadeout 1.0s;
-    animation: fadeout 1.0s;
+    opacity: 0;
+    pointer-events: none;
 }
 
-@-webkit-keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
+#stats {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    opacity: 0.8;
 }
 
-@keyframes fadein {
-    from {bottom: 0; opacity: 0;}
-    to {bottom: 30px; opacity: 1;}
+@media (max-width: 480px) {
+    #stats {
+        transform: scale(0.7);
+        transform-origin: top left;
+    }
 }
-
-@-webkit-keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0; visibility: hidden;}
-}
-
-@keyframes fadeout {
-    from {bottom: 30px; opacity: 1;}
-    to {bottom: 0; opacity: 0; visibility: hidden;}

@@ -4,9 +4,10 @@
   "main": "./js/index.js",
   "scripts": {
     "dev": "webpack --mode development --progress --watch",
-    "build:wasm": "./build.sh",
+    "build:wasm": "make wasm",
     "build:js": "webpack --mode production",
-    "build": "npm run build:wasm; npm run build:js; echo Built at `date`",
+    "build": "make wasm && webpack --mode production; echo Built at `date`",
+    "clean": "make clean",
     "serve": "python3 -m http.server"
   },
   "keywords": [],
@@ -30,14 +31,10 @@
     "@babel/core": "^7.15.5",
     "@babel/plugin-transform-runtime": "^7.15.0",
     "@babel/preset-env": "^7.15.6",
-    "babel": "^6.23.0",
     "babel-loader": "^8.1.0",
-    "eslint": "^7.32.0",
-    "eslint-config-google": "^0.14.0",
-    "raw-loader": "^4.0.1",
-    "terser-webpack-plugin": "^2.3.6",
     "webpack": "^5.52.1",
-    "webpack-cli": "^4.8.0"
+    "webpack-cli": "^4.8.0",
+    "webpack-dev-server": "^4.0.0"
   },
   "description": "Planar Homography Estimation and Image Tracking running in WASM"
 }

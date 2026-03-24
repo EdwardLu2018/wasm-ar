@@ -1,10 +1,10 @@
 #ifndef __UTILS__
 #define __UTILS__
 
-using namespace std;
-using namespace cv;
+#include <vector>
+#include <opencv2/opencv.hpp>
 
-bool homographyValid(Mat H);
-void drawKeypointsOnCanv(vector<KeyPoint> keyPts, const char *canvasId, const char *color);
+bool homographyValid(cv::Mat H, std::vector<cv::Point2f> &corners,
+                     std::vector<cv::Point2f> &warped, int frameCols, int frameRows);
 
 #endif

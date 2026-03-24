@@ -1,6 +1,6 @@
 import {GLUtils} from './utils/gl-utils';
 
-const DEFAULT_BUFFER_SIZE = 1;
+const DEFAULT_BUFFER_SIZE = 2;
 
 export class Preprocessor {
     constructor(width, height, canvas, numberOfBuffers=DEFAULT_BUFFER_SIZE) {
@@ -93,12 +93,10 @@ export class Preprocessor {
         this.canvas.width = this.width;
         this.canvas.height = this.height;
         GLUtils.resize(this._gl);
-        this._gl.uniform2f(this._textureSizeLocation, this.width, this.height);
+        this._gl.uniform2f(this._texSizeLocation, this.width, this.height);
 
         for (let i = 0; i < this._pixelBuffer.length; i++) {
-            const newBuffer = new Uint8Array(this.width * this.height * 4);
-            // newBuffer.set(this._pixelBuffer[i]);
-            this._pixelBuffer[i] = newBuffer;
+            this._pixelBuffer[i] = new Uint8Array(this.width * this.height * 4);
         }
     }
 

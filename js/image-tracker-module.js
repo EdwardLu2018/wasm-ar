@@ -1,4 +1,4 @@
-import ImageTrackerWASM from "./img_tracker_wasm.js";
+import ImageTrackerWASM from "../build/img_tracker_wasm";
 
 export class ImageTrackerModule {
     constructor(width, height, callback) {
@@ -27,6 +27,7 @@ export class ImageTrackerModule {
     }
 
     addRefIm(refImData, refImWidth, refImHeight) {
+        if (this.refImPtr) this._Module._free(this.refImPtr);
         this.refImPtr = this._Module._malloc(refImWidth * refImHeight * 4);
         this._Module.HEAPU8.set(refImData, this.refImPtr);
         this._initAR(this.refImPtr, refImWidth, refImHeight);
@@ -43,11 +44,17 @@ export class ImageTrackerModule {
         return {
             valid: valid,
             H: h,
-            corners: warped
+            corners: [
+                {x: warped[0], y: warped[1]},
+                {x: warped[2], y: warped[3]},
+                {x: warped[4], y: warped[5]},
+                {x: warped[6], y: warped[7]},
+            ]
         };
     }
 
-    resetTracking(im) {
+    resetTracking(imData) {
+        this._Module.HEAPU8.set(imData, this.imPtr);
         const res = this._resetTracking(this.imPtr, this._width, this._height);
         const resObj = this.parseResult(res);
         this.valid = resObj.valid;
@@ -56,15 +63,24 @@ export class ImageTrackerModule {
 
     track(imData) {
         this._Module.HEAPU8.set(imData, this.imPtr);
-        console.log(this.valid)
-        // reset tracking if homography is no long valid
+
+        // reset tracking if homography is no longer valid
         if (!this.valid) {
-            return this.resetTracking(imData, this._width, this._height);
+            return this.resetTracking(imData);
         }
 
         const res = this._track(this.imPtr, this._width, this._height);
         const resObj = this.parseResult(res);
         this.valid = resObj.valid;
         return resObj;
+    }
+
+    destroy() {
+        if (this._Module) {
+            if (this.imPtr) this._Module._free(this.imPtr);
+            if (this.refImPtr) this._Module._free(this.refImPtr);
+            this.imPtr = null;
+            this.refImPtr = null;
+        }
     }
 }

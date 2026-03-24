@@ -1,5 +1,3 @@
-import {Preprocessor} from "./preprocessor";
-
 export class ImageTracker {
     constructor(source) {
         this.running = false;
@@ -8,24 +6,24 @@ export class ImageTracker {
         this.sourceWidth = this.source.options.width;
         this.sourceHeight = this.source.options.height;
 
-        this.grayBuf = new Uint8Array(this.sourceWidth * this.sourceHeight);
-
-        this.preprocessor = new Preprocessor(this.sourceWidth, this.sourceHeight);
         this.worker = new Worker(new URL('./img-tracker.worker.js', import.meta.url));
     }
 
     init() {
         this.source.init()
             .then((source) => {
-                this.preprocessor.attachElem(source);
                 this.onInit(source);
             })
             .catch((err) => {
-                console.warn("ERROR: " + err);
+                console.error("Camera init failed: " + err);
             });
     }
 
     onInit(source) {
+        window.dispatchEvent(new CustomEvent("onWasmARStatus", {
+            detail: { message: "Loading WASM module..." }
+        }));
+
         this.worker.postMessage({
             type: "init",
             width: this.sourceWidth,
@@ -57,6 +55,7 @@ export class ImageTracker {
                     break;
                 }
                 case "not found": {
+                    window.dispatchEvent(new CustomEvent("onWasmARNotFound"));
                     break;
                 }
                 default: {
@@ -74,7 +73,6 @@ export class ImageTracker {
         var canvas = document.createElement('canvas');
         canvas.width = refImWidth;
         canvas.height = refImHeight;
-        // document.body.appendChild(canvas);
 
         var context = canvas.getContext('2d');
         context.drawImage(refIm, 0, 0, refImWidth, refImHeight);
